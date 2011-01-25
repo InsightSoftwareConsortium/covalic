@@ -14,7 +14,7 @@ digraph G {
   ]
 
   SurfaceToSurfaceMetric [
-    label = "{itk::SurfaceToSurfaceMetric||+ meow() : void\l}"
+    label = "{itk::SurfaceToSurfaceMetric||+ SetFixedSurface( SurfaceType ) : void|+ SetMovingSurface( SurfaceType ) : void\l}"
   ]
 
   CovalicSurfaceToSurfaceMetric [
