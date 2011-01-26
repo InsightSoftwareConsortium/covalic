@@ -1,0 +1,58 @@
+digraph G {
+
+  node [
+    fontsize = 12
+    shape = "record"
+  ]
+
+  SingleValuedCostFunction [
+    label = "{itk::SingleValuedCostFunction||+ GetValueAndDerivative : MeasureType, DerivativeType |+ GetValue : MeasureType \l}"
+  ]
+
+  ImageToImageMetric [
+    label = "{itk::ImageToImageMetric||+ SetFixedImage( ImageType ) : void|+ SetMovingImage( ImageType ) : void\l}"
+  ]
+
+  SurfaceToSurfaceMetric [
+    label = "{itk::SurfaceToSurfaceMetric||+ SetFixedSurface( SurfaceType ) : void|+ SetMovingSurface( SurfaceType ) : void\l}"
+  ]
+
+  CovalicSurfaceToSurfaceMetric [
+    label = "{itk::CovalicSurfaceToSurfaceMetric|\l}"
+  ]
+
+  KappaStatisticImageToImageMetric [
+    label = "{itk::KappaStatisticImageToImageMetric|\l}"
+  ]
+
+  LabelMapToLabelMapMetric [
+    label = "{itk::LabelMapToLabelMapMetric|\l}"
+  ]
+
+  SingleLabelMapToLabelMapMetric [
+    label = "{itk::SingleLabelMapToLabelMapMetric|\l}"
+  ]
+
+  KappaStatisticLabelMapToLabelMapMetric [
+    label = "{itk::KappaStatisticLabelMapToLabelMapMetric|\l}"
+  ]
+
+  SurfaceStatisticLabelMapToLabelMapMetric [
+    label = "{itk::SurfaceStatisticLabelMapToLabelMapMetric|\l}"
+  ]
+
+  edge [
+    arrowhead = "empty"
+  ]
+
+  SingleValuedCostFunction -> ImageToImageMetric
+  SingleValuedCostFunction -> SurfaceToSurfaceMetric
+  SurfaceToSurfaceMetric -> CovalicSurfaceToSurfaceMetric
+  ImageToImageMetric -> KappaStatisticImageToImageMetric
+  ImageToImageMetric -> LabelMapToLabelMapMetric
+  LabelMapToLabelMapMetric -> SingleLabelMapToLabelMapMetric 
+  LabelMapToLabelMapMetric -> KappaStatisticLabelMapToLabelMapMetric
+  LabelMapToLabelMapMetric -> SurfaceStatisticLabelMapToLabelMapMetric
+  SurfaceStatisticLabelMapToLabelMapMetric -> CovalicSurfaceToSurfaceMetric [style=dotted]
+
+}
