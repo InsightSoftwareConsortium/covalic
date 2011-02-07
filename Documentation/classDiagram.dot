@@ -21,10 +21,6 @@ digraph G {
     label = "{itk::CovalicSurfaceToSurfaceMetric|\l}"
   ]
 
-  KappaStatisticImageToImageMetric [
-    label = "{itk::KappaStatisticImageToImageMetric|\l}"
-  ]
-
   LabelMapToLabelMapMetric [
     label = "{itk::LabelMapToLabelMapMetric|\l}"
   ]
@@ -48,7 +44,6 @@ digraph G {
   SingleValuedCostFunction -> ImageToImageMetric
   SingleValuedCostFunction -> SurfaceToSurfaceMetric
   SurfaceToSurfaceMetric -> CovalicSurfaceToSurfaceMetric
-  ImageToImageMetric -> KappaStatisticImageToImageMetric
   ImageToImageMetric -> LabelMapToLabelMapMetric
   LabelMapToLabelMapMetric -> SingleLabelMapToLabelMapMetric 
   LabelMapToLabelMapMetric -> KappaStatisticLabelMapToLabelMapMetric
