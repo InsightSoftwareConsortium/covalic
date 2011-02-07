@@ -1,54 +1,44 @@
 
-#ifndef _DiceOverlapCalculator_txx
+#ifndef _DiceOverlapImageToImageMetric_txx
 
 #include "itkImageRegionIterator.h"
 
 #include "vnl/vnl_matrix.h"
 
-#include "DiceOverlapCalculator.h"
+#include "DiceOverlapImageToImageMetric.h"
 
 #include "muException.h"
 
 template <class TLabelImage>
-DiceOverlapCalculator<TLabelImage>
-::DiceOverlapCalculator()
+DiceOverlapImageToImageMetric<TLabelImage>
+::DiceOverlapImageToImageMetric()
 {
 
 }
 
 template <class TLabelImage>
-DiceOverlapCalculator<TLabelImage>
-::~DiceOverlapCalculator()
+DiceOverlapImageToImageMetric<TLabelImage>
+::~DiceOverlapImageToImageMetric()
 {
 
 }
 
-template <class TLabelImage>
-void
-DiceOverlapCalculator<TLabelImage>
-::SetFirstInput(TLabelImage* img)
-{
-  m_Input1 = img;
-}
+template <class TFixedImage, class TMovingImage>
+typename HistogramImageToImageMetric<TFixedImage,TMovingImage>::MeasureType
+HistogramImageToImageMetric<TFixedImage,TMovingImage>
+::GetValue(const TransformParametersType& parameters) const
 
 template <class TLabelImage>
-void
-DiceOverlapCalculator<TLabelImage>
-::SetSecondInput(TLabelImage* img)
-{
-  m_Input2 = img;
-}
 
-template <class TLabelImage>
-DynArray<double>
-DiceOverlapCalculator<TLabelImage>
+DiceOverlapImageToImageMetric<TLabelImage>
 ::ComputeOverlaps()
 {
-  if (m_Input1.IsNull() || m_Input2.IsNull())
-    muExceptionMacro(<< "Need two input classification images");
+  if (m_FixedImage.IsNull() || m_MovingImage.IsNull())
+    itkExceptionMacro(<< "Need two input classification images");
 
   // Define iterators
-  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
+  typedef itk::ImageRegionIterator<FixedImageType> FixedIteratorType;
+  typedef itk::ImageRegionIterator<MovingImageType> MovingIteratorType;
 
   IteratorType it1(m_Input1, m_Input1->GetRequestedRegion());
   IteratorType it2(m_Input2, m_Input2->GetRequestedRegion());
