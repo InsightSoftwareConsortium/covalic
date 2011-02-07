@@ -32,7 +32,7 @@ private:
 
 };
 
-#ifndef MU_MANUAL_INSTANTIATION
+#ifndef ITK_MANUAL_INSTANTIATION
 #include "KappaCalculator.txx"
 #endif
 
