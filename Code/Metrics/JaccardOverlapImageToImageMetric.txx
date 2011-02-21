@@ -1,27 +1,27 @@
 
-#ifndef _DiceOverlapImageToImageMetric_txx
+#ifndef _JaccardOverlapImageToImageMetric_txx
 
-#include "DiceOverlapImageToImageMetric.h"
+#include "JaccardOverlapImageToImageMetric.h"
 
 #include "itkImageRegionIterator.h"
 
 template <class TFixedImage, class TMovingImage>
-DiceOverlapImageToImageMetric<TFixedImage, TMovingImage>
-::DiceOverlapImageToImageMetric()
+JaccardOverlapImageToImageMetric<TFixedImage, TMovingImage>
+::JaccardOverlapImageToImageMetric()
 {
 
 }
 
 template <class TFixedImage, class TMovingImage>
-DiceOverlapImageToImageMetric<TFixedImage, TMovingImage>
-::~DiceOverlapImageToImageMetric()
+JaccardOverlapImageToImageMetric<TFixedImage, TMovingImage>
+::~JaccardOverlapImageToImageMetric()
 {
 
 }
 
 template <class TFixedImage, class TMovingImage>
-typename DiceOverlapImageToImageMetric<TFixedImage,TMovingImage>::MeasureType
-DiceOverlapImageToImageMetric<TFixedImage, TMovingImage>
+typename JaccardOverlapImageToImageMetric<TFixedImage,TMovingImage>::MeasureType
+JaccardOverlapImageToImageMetric<TFixedImage, TMovingImage>
 ::GetValue() const
 {
   if (Superclass::m_FixedImage.IsNull() || Superclass::m_MovingImage.IsNull())
@@ -36,8 +36,7 @@ DiceOverlapImageToImageMetric<TFixedImage, TMovingImage>
 
   // Get intersection and individual set sizes
   unsigned int numIntersect = 0;
-  unsigned int numA = 0;
-  unsigned int numB = 0;
+  unsigned int numUnion = 0;
 
   fixedIt.GoToBegin();
   movingIt.GoToBegin();
@@ -52,20 +51,14 @@ DiceOverlapImageToImageMetric<TFixedImage, TMovingImage>
     if (a && b)
       numIntersect++;
 
-    if (a)
-      numA++;
+    if (a || b)
+      numUnion++;
 
-    if (b)
-      numB++;
-  
     ++fixedIt;
     ++movingIt;
   }
 
-  // Overlap or similarity coeff is intersect / average
-  double avgSize = (numA + numB) / 2.0 + 1e-20;
-
-  return (double)numIntersect / avgSize;
+  return (double)numIntersect / (numUnion + 1e-20);
 }
 
 #endif

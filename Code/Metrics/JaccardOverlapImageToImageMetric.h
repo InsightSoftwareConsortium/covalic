@@ -1,23 +1,23 @@
 
-// Dice similarity coefficient
+// Jaccard similarity coefficient
 // Input: binary images
-// 2 * intersect(A, B) / (|A| + |B|)
+// 2 * intersect(A, B) / union(A, B)
 
-#ifndef _DiceOverlapImageToImageMetric_h
-#define _DiceOverlapImageToImageMetric_h
+#ifndef _JaccardOverlapImageToImageMetric_h
+#define _JaccardOverlapImageToImageMetric_h
 
 #include "itkImageToImageMetric.h"
 #include "itkSmartPointer.h"
 
 template <class TFixedImage, class TMovingImage>
-class ITK_EXPORT DiceOverlapImageToImageMetric :
+class ITK_EXPORT JaccardOverlapImageToImageMetric :
   public itk::ImageToImageMetric<TFixedImage, TMovingImage>
 {
 
 public:
 
   /** Standard class typedefs. */
-  typedef DiceOverlapImageToImageMetric           Self;
+  typedef JaccardOverlapImageToImageMetric           Self;
   typedef itk::ImageToImageMetric<TFixedImage, TMovingImage> Superclass;
   typedef itk::SmartPointer<Self>                            Pointer;
   typedef itk::SmartPointer<const Self>                      ConstPointer;
@@ -29,7 +29,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(DiceOverlapImageToImageMetric,
+  itkTypeMacro(JaccardOverlapImageToImageMetric,
     itk::ImageToImageMetric);
 
   typedef typename Superclass::MeasureType MeasureType;
@@ -51,13 +51,13 @@ public:
 
 protected:
 
-  DiceOverlapImageToImageMetric();
-  virtual ~DiceOverlapImageToImageMetric();
+  JaccardOverlapImageToImageMetric();
+  virtual ~JaccardOverlapImageToImageMetric();
 
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "DiceOverlapImageToImageMetric.txx"
+#include "JaccardOverlapImageToImageMetric.txx"
 #endif
 
 #endif

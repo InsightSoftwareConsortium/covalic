@@ -1,51 +1,33 @@
 
-#ifndef _KappaCalculator_txx
+#ifndef _CohenKappaImageToImageMetric_txx
+
+#include "CohenKappaImageToImageMetric.h"
 
 #include "itkImageRegionIterator.h"
 
 #include "vnl/vnl_matrix.h"
 
-#include "KappaCalculator.h"
-
-#include "muException.h"
-
 template <class TLabelImage>
-KappaCalculator<TLabelImage>
-::KappaCalculator()
+CohenKappaImageToImageMetric<TLabelImage>
+::CohenKappaImageToImageMetric()
 {
 
 }
 
 template <class TLabelImage>
-KappaCalculator<TLabelImage>
-::~KappaCalculator()
+CohenKappaImageToImageMetric<TLabelImage>
+::~CohenKappaImageToImageMetric()
 {
 
-}
-
-template <class TLabelImage>
-void
-KappaCalculator<TLabelImage>
-::SetFirstInput(TLabelImage* img)
-{
-  m_Input1 = img;
-}
-
-template <class TLabelImage>
-void
-KappaCalculator<TLabelImage>
-::SetSecondInput(TLabelImage* img)
-{
-  m_Input2 = img;
 }
 
 template <class TLabelImage>
 double
-KappaCalculator<TLabelImage>
-::ComputeKappa()
+CohenKappaImageToImageMetric<TLabelImage>
+::GetValue() const
 {
-  if (m_Input1.IsNull() || m_Input2.IsNull())
-    muExceptionMacro(<< "Need two input classification images");
+  if (m_FixedImage.IsNull() || m_MovingImage.IsNull())
+    itkExceptionMacro(<< "Need two input classification images");
 
   // Define iterators
   typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
