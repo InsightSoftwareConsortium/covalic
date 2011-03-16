@@ -38,7 +38,8 @@ public:
   MeasureType GetValue() const;
 
   MeasureType GetValue(const itk::Array<double>& p) const
-  { return this->GetValue(); }
+  { // TODO: apply transform with nearest neighbor interpolation
+    return this->GetValue(); }
 
   MeasureType GetDerivative(const itk::Array<double>& p) const
   { return 0; }
