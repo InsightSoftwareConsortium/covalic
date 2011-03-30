@@ -12,8 +12,5 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Metrics
 )
 
-add_executable(validateDice validateDice.cxx)
-add_executable(validateJaccard validateJaccard.cxx)
-
-target_link_libraries(validateDice ${ITK_LIBRARIES})
-target_link_libraries(validateJaccard ${ITK_LIBRARIES})
+add_subdirectory(ValidateDice)
+add_subdirectory(ValidateJaccard)

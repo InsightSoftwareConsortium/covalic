@@ -12,6 +12,8 @@
 #include <iostream>
 #include <string>
 
+#include "ValidateDiceCLP.h"
+
 
 int
 validateDice(const char* fn1, const char* fn2)
@@ -54,15 +56,11 @@ validateDice(const char* fn1, const char* fn2)
 int
 main(int argc, char** argv)
 {
-  if (argc != 3)
-  {
-    std::cerr << "Usage: " << argv[0] << " label_img1 label_img2" << std::endl;
-    return -1;
-  }
+  PARSE_ARGS;
 
   try
   {
-    validateDice(argv[1], argv[2]);
+    validateDice(inputVolume1.c_str(), inputVolume2.c_str());
   } 
   catch (itk::ExceptionObject& e)
   {

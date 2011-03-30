@@ -12,6 +12,7 @@
 #include <iostream>
 #include <string>
 
+#include "ValidateJaccardCLP.h"
 
 int
 validateJaccard(const char* fn1, const char* fn2)
@@ -54,15 +55,11 @@ validateJaccard(const char* fn1, const char* fn2)
 int
 main(int argc, char** argv)
 {
-  if (argc != 3)
-  {
-    std::cerr << "Usage: " << argv[0] << " label_img1 label_img2" << std::endl;
-    return -1;
-  }
+  PARSE_ARGS;
 
   try
   {
-    validateJaccard(argv[1], argv[2]);
+  validateJaccard(inputVolume1.c_str(), inputVolume2.c_str());
   } 
   catch (itk::ExceptionObject& e)
   {
