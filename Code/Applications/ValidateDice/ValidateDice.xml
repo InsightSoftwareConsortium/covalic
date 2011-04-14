@@ -18,16 +18,24 @@
       <label>Input Volume 1</label>
       <channel>input</channel>
       <index>0</index>
-      <description>Input volume 2</description>
+      <description>Input volume 1</description>
     </image>
     <image>
       <name>inputVolume2</name>
       <label>Input Volume 2</label>
       <channel>input</channel>
-      <longflag>orVolumes</longflag>
-      <flag>o</flag>
-      <description>Input volume</description>
+      <index>1</index>
+      <description>Input volume 2</description>
     </image>
+    <string>
+      <name>outputFile</name>
+      <label>Output File</label>
+      <channel>output</channel>
+      <default>ValidateDice.out</default>
+      <index>1</index>
+      <description>filename to output results to</description>
+    </string>
+
   </parameters>
 
 </executable>
