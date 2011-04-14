@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MIDAS>
+  <BatchMake>
+    <title>ValidateJaccard demo</title>
+    
+    <!-- Note: Use CDATA to allow html tag within a XML element -->
+    <description><![CDATA[For each element of the <b>input cart</b>, pair it with every other element in the input cart, and run the ValidateJaccard application on the pairing.  The results are stored in the output_file designated by the user]]></description>
+    
+    <version>0.1</version>
+    
+    
+    <!-- Applications used in the corresponding bms file -->
+    <!-- Nota: element "applications" is optional  -->
+    <applications>
+      <application>ValidateJaccard</application>
+    </applications>
+    
+    <!-- Batchmake parameters -->
+    <parameters>
+       <!-- Input cart -->
+       <cart>        
+         <name>input_cart</name>
+         <label>Input</label>
+       </cart>
+       
+       <string>
+         <name>output_file</name>
+         <label>Output File Name</label>
+         <description>Name of the output file to write results to</description>
+         <default>validatejaccard.out</default>
+       </string>
+
+
+     </parameters>
+  </BatchMake>
+</MIDAS>

@@ -16,7 +16,7 @@
 
 
 int
-validateDice(const char* fn1, const char* fn2)
+validateDice(const char* fn1, const char* fn2, const char* outFile)
 {
 
   itk::OutputWindow::SetInstance(itk::TextOutput::New());
@@ -47,7 +47,10 @@ validateDice(const char* fn1, const char* fn2)
   diceMetric->SetFixedImage(Amask);
   diceMetric->SetMovingImage(Bmask);
 
-  std::cout << "Dice(A,B) = " <<  diceMetric->GetValue() << std::endl;
+  std::ofstream outputfile;
+  outputfile.open(outFile, std::ios::out);
+  outputfile << "Dice(A,B) = " <<  diceMetric->GetValue() << std::endl;
+  outputfile.close();
 
   return 0;
 
@@ -60,7 +63,7 @@ main(int argc, char** argv)
 
   try
   {
-    validateDice(inputVolume1.c_str(), inputVolume2.c_str());
+    validateDice(inputVolume1.c_str(), inputVolume2.c_str(), outputFile.c_str());
   } 
   catch (itk::ExceptionObject& e)
   {

@@ -51,3 +51,8 @@ set( TARGETS
      ${PROJECT_NAME}Module
      ${PROJECT_NAME} )
 slicer3_install_plugins( ${TARGETS} )
+
+
+# copy over the Midas-Integration files to the built project
+file(GLOB MIDAS_INTEGRATION_FILES ./Midas-Integration *)
+file(COPY ${MIDAS_INTEGRATION_FILES} DESTINATION .)
