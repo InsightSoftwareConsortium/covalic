@@ -1,23 +1,21 @@
 
-// Jaccard similarity coefficient
-// Input: binary images
-// 2 * intersect(A, B) / union(A, B)
+// Average surface distances, given two masks
+//
+// Both fixed and moving images must have the same unsigned type
+// Only 3D images for now
 
-#ifndef _JaccardOverlapImageToImageMetric_h
-#define _JaccardOverlapImageToImageMetric_h
-
-#include "itkImageToImageMetric.h"
-#include "itkSmartPointer.h"
+#ifndef _AverageDistanceImageToImageMetric_h
+#define _AverageDistanceImageToImageMetric_h
 
 template <class TFixedImage, class TMovingImage>
-class ITK_EXPORT JaccardOverlapImageToImageMetric :
+class AverageDistanceImageToImageMetric :
   public itk::ImageToImageMetric<TFixedImage, TMovingImage>
 {
 
 public:
 
   /** Standard class typedefs. */
-  typedef JaccardOverlapImageToImageMetric           Self;
+  typedef AverageDistanceImageToImageMetric           Self;
   typedef itk::ImageToImageMetric<TFixedImage, TMovingImage> Superclass;
   typedef itk::SmartPointer<Self>                            Pointer;
   typedef itk::SmartPointer<const Self>                      ConstPointer;
@@ -29,12 +27,16 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(JaccardOverlapImageToImageMetric,
+  itkTypeMacro(AverageDistanceImageToImageMetric,
     itk::ImageToImageMetric);
 
   typedef typename Superclass::MeasureType MeasureType;
 
-  /**  Get the value for single valued optimizers. */
+  typedef typename TFixedImage::Pointer FixedImagePointer;
+  typedef typename TFixedImage::PointType FixedImagePointType;
+  typedef typename TFixedImage::SizeType FixedImageSizeType;
+  typedef typename TFixedImage::SpacingType FixedImageSpacingType;
+
   MeasureType GetValue() const;
 
   MeasureType GetValue(const itk::Array<double>& p) const
@@ -46,19 +48,24 @@ public:
   virtual void GetDerivative(const itk::Array<double>& p, itk::Array<double>& q) const
   { itkExceptionMacro(<< "Not implemented"); }
 
-  // TODO
-  // For label image?
-  // std::vector<double> GetValues();
+  void BlurringOn() { m_DoBlurring = true; }
+  void BlurringOff() { m_DoBlurring = false; }
 
 protected:
 
-  JaccardOverlapImageToImageMetric();
-  virtual ~JaccardOverlapImageToImageMetric();
+  AverageDistanceImageToImageMetric();
+  ~AverageDistanceImageToImageMetric();
+
+  double Compute3DNonSymmetricDistance(const FixedImageType*, const MovingImageType*) const;
+
+private:
+
+  bool m_DoBlurring;
 
 };
 
-#ifndef ITK_MANUAL_INSTANTIATION
-#include "JaccardOverlapImageToImageMetric.txx"
+#ifndef MU_MANUAL_INSTANTIATION
+#include "AverageDistanceImageToImageMetric.txx"
 #endif
 
 #endif

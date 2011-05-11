@@ -1,51 +1,53 @@
 
 #ifndef _CohenKappaImageToImageMetric_txx
+#define _CohenKappaImageToImageMetric_txx
 
 #include "CohenKappaImageToImageMetric.h"
 
-#include "itkImageRegionIterator.h"
+#include "itkImageRegionConstIterator.h"
 
 #include "vnl/vnl_matrix.h"
 
-template <class TLabelImage>
-CohenKappaImageToImageMetric<TLabelImage>
+template <class TFixedImage, class TMovingImage>
+CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
 ::CohenKappaImageToImageMetric()
 {
 
 }
 
-template <class TLabelImage>
-CohenKappaImageToImageMetric<TLabelImage>
+template <class TFixedImage, class TMovingImage>
+CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
 ::~CohenKappaImageToImageMetric()
 {
 
 }
 
-template <class TLabelImage>
-double
-CohenKappaImageToImageMetric<TLabelImage>
+template <class TFixedImage, class TMovingImage>
+typename CohenKappaImageToImageMetric<TFixedImage, TMovingImage>::MeasureType
+CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
 ::GetValue() const
 {
-  if (m_FixedImage.IsNull() || m_MovingImage.IsNull())
+  if (Superclass::m_FixedImage.IsNull() || Superclass::m_MovingImage.IsNull())
     itkExceptionMacro(<< "Need two input classification images");
 
   // Define iterators
-  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
+  typedef itk::ImageRegionConstIterator<FixedImageType> FixedIteratorType;
+  typedef itk::ImageRegionConstIterator<MovingImageType> MovingIteratorType;
 
-  IteratorType it1(m_Input1, m_Input1->GetRequestedRegion());
-  IteratorType it2(m_Input2, m_Input2->GetRequestedRegion());
+  FixedIteratorType fixedIt(Superclass::m_FixedImage, Superclass::m_FixedImage->GetRequestedRegion());
+  MovingIteratorType movingIt(Superclass::m_MovingImage, Superclass::m_MovingImage->GetRequestedRegion());
 
   // Count number of labels from max value in both images
   // also count number of samples
   unsigned int numLabels = 0;
   unsigned int numSamples = 0;
 
-  it1.GoToBegin();
-  it2.GoToBegin();
-  while (!it1.IsAtEnd() && !it2.IsAtEnd())
+  fixedIt.GoToBegin();
+  movingIt.GoToBegin();
+  while (!fixedIt.IsAtEnd() && !movingIt.IsAtEnd())
   {
-    unsigned int r = (unsigned int)it1.Get();
-    unsigned int c = (unsigned int)it2.Get();
+    unsigned int r = (unsigned int)fixedIt.Get();
+    unsigned int c = (unsigned int)movingIt.Get();
 
     if (r != 0 && c != 0)
     {
@@ -58,27 +60,27 @@ CohenKappaImageToImageMetric<TLabelImage>
       ++numSamples;
     }
 
-    ++it1;
-    ++it2;
+    ++fixedIt;
+    ++movingIt;
   }
 
   // Fill in matrix that counts agreements/disagreements
   vnl_matrix<unsigned int> countMatrix(numLabels, numLabels);
 
-  it1.GoToBegin();
-  it2.GoToBegin();
-  while (!it1.IsAtEnd())
+  fixedIt.GoToBegin();
+  movingIt.GoToBegin();
+  while (!fixedIt.IsAtEnd() && !movingIt.IsAtEnd())
   {
-    unsigned int r = (unsigned int)it1.Get();
-    unsigned int c = (unsigned int)it2.Get();
+    unsigned int r = (unsigned int)fixedIt.Get();
+    unsigned int c = (unsigned int)movingIt.Get();
 
     if (r != 0 && c != 0)
     {
       countMatrix(r-1, c-1) += 1;
     }
 
-    ++it1;
-    ++it2;
+    ++fixedIt;
+    ++movingIt;
   }
 
   // Process the matrix

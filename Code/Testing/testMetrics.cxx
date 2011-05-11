@@ -1,7 +1,10 @@
 
 #include "DiceOverlapImageToImageMetric.h"
 #include "JaccardOverlapImageToImageMetric.h"
-//#include "CohenKappaImageToImageMetric.h"
+
+#include "CohenKappaImageToImageMetric.h"
+
+#include "AverageDistanceImageToImageMetric.h"
 
 #include "itkImage.h"
 #include "itkImageRegionIteratorWithIndex.h"
@@ -54,6 +57,12 @@ testMetrics()
         if (ind[0] < 32)
           continue;
         Bmask->SetPixel(ind, 1);
+
+        if (ind[0] > 32)
+        {
+          Amask->SetPixel(ind, 2);
+          Bmask->SetPixel(ind, 1);
+        }
       }
 
 
@@ -72,6 +81,22 @@ testMetrics()
   jaccMetric->SetMovingImage(Bmask);
 
   std::cout << "Jaccard(A,B) = " <<  jaccMetric->GetValue() << std::endl;
+
+  typedef CohenKappaImageToImageMetric<ByteImageType, ByteImageType>
+    KappaMetricType;
+  KappaMetricType::Pointer kappaMetric = KappaMetricType::New();
+  kappaMetric->SetFixedImage(Amask);
+  kappaMetric->SetMovingImage(Bmask);
+
+  std::cout << "Kappa(A,B) = " << kappaMetric->GetValue() << std::endl;
+
+  typedef AverageDistanceImageToImageMetric<ByteImageType, ByteImageType>
+    DistanceMetricType;
+  DistanceMetricType::Pointer distMetric = DistanceMetricType::New();
+  distMetric->SetFixedImage(Amask);
+  distMetric->SetMovingImage(Bmask);
+
+  std::cout << "Dist(A,B) = " << distMetric->GetValue() << std::endl;
 
   return 0;
 

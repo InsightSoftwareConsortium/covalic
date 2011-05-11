@@ -42,9 +42,9 @@ public:
     return this->GetValue(); }
 
   MeasureType GetDerivative(const itk::Array<double>& p) const
-  { return 0; }
+  { itkExceptionMacro(<< "Not implemented"); return 0; }
   virtual void GetDerivative(const itk::Array<double>& p, itk::Array<double>& q) const
-  { return; }
+  { itkExceptionMacro(<< "Not implemented"); }
 
   // TODO
   // For label image?
@@ -54,6 +54,8 @@ protected:
 
   DiceOverlapImageToImageMetric();
   virtual ~DiceOverlapImageToImageMetric();
+
+// TODO: transform member, default to identity
 
 };
 

@@ -7,6 +7,24 @@ if (USE_ITK_FILE)
   include(${USE_ITK_FILE})
 endif (USE_ITK_FILE)
 
+find_package(VTK)
+if (VTK_FOUND)
+  include(${USE_VTK_FILE})
+else (VTK_FOUND)
+  message(FATAL_ERROR "VTK not found. Please set VTK_DIR.")
+endif (VTK_FOUND)
+
+set(VTK_LIBRARIES
+  vtkFiltering
+  vtkGraphics
+  vtkHybrid
+  vtkImaging
+  vtkRendering
+  vtkIO
+  vtkCommon
+)
+
+
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Converters
   ${CMAKE_CURRENT_SOURCE_DIR}/../Metrics
@@ -14,4 +32,4 @@ include_directories(
 
 add_executable(testMetrics testMetrics.cxx)
 
-target_link_libraries(testMetrics ${ITK_LIBRARIES})
+target_link_libraries(testMetrics ${ITK_LIBRARIES} ${VTK_LIBRARIES})

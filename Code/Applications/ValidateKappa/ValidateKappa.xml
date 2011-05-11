@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+
+  <category>Validation</category>
+  <title>Validate Cohen's Kappa</title>
+  <description></description>
+  <version>0.1.0</version>
+  <documentation-url>http://www.kitware.com/midaswiki/index.php/Projects/COVALIC</documentation-url>
+  <license>Apache 2.0</license>
+  <contributor>Utah+Kitware</contributor>
+  <acknowledgements>This is part of COVALIC.</acknowledgements>
+
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+    <image>
+      <name>inputVolume1</name>
+      <label>Input Volume 1</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Input volume 1</description>
+    </image>
+    <image>
+      <name>inputVolume2</name>
+      <label>Input Volume 2</label>
+      <channel>input</channel>
+      <index>1</index>
+      <description>Input volume 2</description>
+    </image>
+    <string>
+      <name>outputFile</name>
+      <label>Output File</label>
+      <channel>output</channel>
+      <default>ValidateKappa.out</default>
+      <index>1</index>
+      <description>filename to output results to</description>
+    </string>
+
+  </parameters>
+
+</executable>
