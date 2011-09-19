@@ -11,6 +11,8 @@
 
 #include "SurfaceToSurfaceMetric.h"
 
+#include "vtkPolyData.h"
+
 class CurrentsSurfaceToSurfaceMetric: public SurfaceToSurfaceMetric
 {
 public:
@@ -25,6 +27,10 @@ public:
   virtual double GetValue();
 
 protected:
+
+  double ComputeCurrentsNorm(vtkPolyData* pd);
+
+  vtkSmartPointer<vtkPolyData> ComputeWeightedPDNormals(vtkPolyData* polyData)
 
   double m_KernelWidth;
 };
