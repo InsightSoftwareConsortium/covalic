@@ -14,9 +14,9 @@ ClosestDistanceSurfaceToSurfaceMetric
   m_FixedPointLocator->BuildLocator();
 }
 
-double
+ClosestDistanceSurfaceToSurfaceMetric::MeasureType
 ClosestDistanceSurfaceToSurfaceMetric
-::GetValue()
+::GetValue() const
 {
   vtkPoints* fixedPts = this->GetFixedSurface()->GetPoints();
 
@@ -45,5 +45,5 @@ ClosestDistanceSurfaceToSurfaceMetric
     sumDist += sqrt(dist_i);
   }
 
-  retunr sumDist / movingPts->GetNumberOfPoints();
+  return sumDist / movingPts->GetNumberOfPoints();
 };

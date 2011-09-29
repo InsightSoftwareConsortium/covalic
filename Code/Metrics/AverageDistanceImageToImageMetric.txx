@@ -17,6 +17,9 @@
 #include "vtkPointData.h"
 #include "vtkPolyData.h"
 #include "vtkSmartPointer.h"
+#include "vtkTriangleFilter.h"
+
+#include "vnl/vnl_math.h"
 
 #include "AverageDistanceImageToImageMetric.h"
 
@@ -68,9 +71,16 @@ AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
     }
     else
     {
+      typename FloatImageType::SpacingType spacing = img1->GetSpacing();
+
+      double minSpacing = spacing[0];
+      for (unsigned int dim = 0; dim < FixedImageType::ImageDimension; dim++)
+        if (spacing[dim] < minSpacing)
+          minSpacing = spacing[dim];
+
       typename BlurFilterType::Pointer blurf = BlurFilterType::New();
       blurf->SetInput(distanceMapFilter->GetDistanceMap());
-      blurf->SetVariance(0.01);
+      blurf->SetVariance(0.5 * minSpacing);
       blurf->Update();
 
       distMap2 = blurf->GetOutput();
@@ -136,23 +146,74 @@ AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
 
   contourf->Update();
 
-  vtkSmartPointer<vtkPolyData> contourPD = contourf->GetOutput();
-  if (contourPD->GetNumberOfPoints() == 0)
+  vtkSmartPointer<vtkTriangleFilter> trif = vtkSmartPointer<vtkTriangleFilter>::New();
+  trif->SetInput(contourf->GetOutput());
+  trif->PassVertsOff();
+  trif->PassLinesOff();
+  trif->Update();
+
+  vtkSmartPointer<vtkPolyData> boundaryPD = trif->GetOutput();
+
+  boundaryPD->BuildLinks();
+
+  if (boundaryPD->GetNumberOfCells() == 0)
   {
     itkExceptionMacro(<< "No boundary points detected");
     return 0.0;
   }
 
   double sumD = 0;
-  for (vtkIdType k = 0; k < contourPD->GetNumberOfPoints(); k++)
-  {
-    double x[3];
-    contourPD->GetPoint(k, x);
+  double sumArea = 0;
 
+  for (vtkIdType k = 0; k < boundaryPD->GetNumberOfCells(); k++)
+  {
+    // Compute centroid
+    double c[3];
+    for (int d = 0; d < 3; d++)
+      c[d] = 0;
+
+    vtkIdType nPts = 0;
+    vtkIdType* ptIds = 0;
+    boundaryPD->GetCellPoints(k, nPts, ptIds);
+
+    if (nPts != 3)
+      itkExceptionMacro(<< "Non triangle cell detected: " << nPts);
+
+
+    double x0[3];
+    boundaryPD->GetPoint(ptIds[0], x0);
+    double x1[3];
+    boundaryPD->GetPoint(ptIds[1], x1);
+    double x2[3];
+    boundaryPD->GetPoint(ptIds[2], x2);
+
+    for (int d = 0; d < 3; d++)
+    {
+      c[d] += (x0[d] + x1[d] + x2[d]) / 3.0;
+    }
+
+    for (int d = 0; d < 3; d++)
+    {
+      x1[d] = x1[d] - x0[d];
+      x2[d] = x2[d] - x0[d];
+    }
+
+    // Compute area
+    double crossp[3];
+    crossp[0] = (x1[1] * x2[2] - x1[2] * x2[1]) / 2.0;
+    crossp[1] = (x1[2] * x2[0] - x1[0] * x2[2]) / 2.0;
+    crossp[2] = (x1[0] * x2[1] - x1[1] * x2[0]) / 2.0;
+
+    double area = 0;
+    for (int d = 0; d < 3; d++)
+      area += crossp[d] * crossp[d];
+    area /= 2.0;
+
+    // Compute distance
     typename FloatImageType::PointType p;
-    p[0] = x[0];
-    p[1] = x[1];
-    p[2] = x[2];
+    p[0] = c[0];
+    p[1] = c[1];
+    p[2] = c[2];
 
     if (!distInterp2->IsInsideBuffer(p))
     {
@@ -161,10 +222,11 @@ AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
 
     double d = distInterp2->Evaluate(p);
 
-    sumD += fabs(d);
+    sumD += vnl_math_abs(d);
+    sumArea += area;
   }
 
-  double meanD = sumD / contourPD->GetNumberOfPoints();
+  double meanD = sumD / sumArea;
 
   return meanD;
 }

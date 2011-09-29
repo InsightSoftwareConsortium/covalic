@@ -33,22 +33,21 @@ public:
     itk::ImageToImageMetric);
 
   typedef typename Superclass::MeasureType MeasureType;
+  typedef typename Superclass::TransformParametersType TransformParametersType;
+  typedef typename Superclass::DerivativeType DerivativeType;
 
   /**  Get the value for single valued optimizers. */
   MeasureType GetValue() const;
 
-  MeasureType GetValue(const itk::Array<double>& p) const
+  MeasureType GetValue(const TransformParametersType& p) const
   { // TODO: apply transform with nearest neighbor interpolation
     return this->GetValue(); }
 
-  MeasureType GetDerivative(const itk::Array<double>& p) const
-  { itkExceptionMacro(<< "Not implemented"); return 0; }
-  virtual void GetDerivative(const itk::Array<double>& p, itk::Array<double>& q) const
+  void GetDerivative(const TransformParametersType& p, DerivativeType& dp) const
   { itkExceptionMacro(<< "Not implemented"); }
 
-  // TODO
-  // For label image?
-  // std::vector<double> GetValues();
+  void GetValueAndDerivative(const TransformParametersType& p, MeasureType& v, DerivativeType& dp) const
+  { itkExceptionMacro(<< "Not implemented"); }
 
 protected:
 

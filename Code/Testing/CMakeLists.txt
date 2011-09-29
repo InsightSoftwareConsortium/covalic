@@ -30,6 +30,14 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Metrics
 )
 
-add_executable(testMetrics testMetrics.cxx)
+add_executable(testImageMetrics testImageMetrics.cxx)
+add_executable(testSurfMetrics
+  testSurfMetrics.cxx
+  ../Metrics/SurfaceToSurfaceMetric.cxx
+  ../Metrics/ClosestDistanceSurfaceToSurfaceMetric.cxx
+  ../Metrics/HaussdorffDistanceSurfaceToSurfaceMetric.cxx
+  ../Metrics/CurrentsSurfaceToSurfaceMetric.cxx
+)
 
-target_link_libraries(testMetrics ${ITK_LIBRARIES} ${VTK_LIBRARIES})
+target_link_libraries(testImageMetrics ${ITK_LIBRARIES} ${VTK_LIBRARIES})
+target_link_libraries(testSurfMetrics ${ITK_LIBRARIES} ${VTK_LIBRARIES})

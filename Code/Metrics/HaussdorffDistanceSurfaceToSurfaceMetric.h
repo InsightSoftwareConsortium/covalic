@@ -8,15 +8,38 @@
 #include "SurfaceToSurfaceMetric.h"
 
 #include "vtkKdTreePointLocator.h"
+#include "vtkSmartPointer.h"
 
 class HaussdorffDistanceSurfaceToSurfaceMetric: public SurfaceToSurfaceMetric
 {
 public:
 
+  typedef SurfaceToSurfaceMetric Superclass;
+  typedef HaussdorffDistanceSurfaceToSurfaceMetric Self;
+  typedef itk::SmartPointer<Self> Pointer;
+  typedef itk::SmartPointer<const Self>  ConstPointer;
+
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(HaussdorffDistanceSurfaceToSurfaceMetric,
+    SurfaceToSurfaceMetric);
+
+  typedef Superclass::MeasureType MeasureType;
+  typedef Superclass::ParametersType ParametersType;
+  typedef Superclass::DerivativeType DerivativeType;
+
   virtual void SetFixedSurface(vtkPolyData* pd);
   virtual void SetMovingSurface(vtkPolyData* pd);
 
-  virtual double GetValue();
+  virtual unsigned int GetNumberOfParameters() const
+  { itkExceptionMacro(<< "Not implemented"); return 0; }
+
+  virtual MeasureType GetValue() const;
+
+  virtual MeasureType GetValue(const ParametersType& p) const
+  { itkExceptionMacro(<< "Not implemented"); return 0; }
 
 protected:
 

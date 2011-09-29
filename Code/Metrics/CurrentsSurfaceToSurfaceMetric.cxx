@@ -17,8 +17,6 @@
 #include "vtkPointData.h"
 #include "vtkSmartPointer.h"
 
-#include "vtkWeightedPolyDataNormals.h"
-
 #include "vnl/vnl_math.h"
 
 #include "CurrentsSurfaceToSurfaceMetric.h"
@@ -35,14 +33,14 @@ CurrentsSurfaceToSurfaceMetric
 
 double
 CurrentsSurfaceToSurfaceMetric
-::GetKernelWidth()
+::GetKernelWidth() const
 {
   return m_KernelWidth;
 }
 
 double
 CurrentsSurfaceToSurfaceMetric
-::ComputeCurrentsNorm(vtkPolyData* polyData)
+::ComputeCurrentsNorm(vtkPolyData* polyData) const
 {
   double var = m_KernelWidth * m_KernelWidth;
 
@@ -115,7 +113,12 @@ CurrentsSurfaceToSurfaceMetric
       double nj[3];
       normals->GetTuple(neighbors[j], nj);
 
-      kdnorm += dot3d(ni, nj) * exp(-0.5 * dvec.GetSquaredNorm() / var);
+      double dotnn = 0;
+      for (unsigned int d = 0; d < 3; d++)
+        dotnn += ni[d] * nj[d];
+
+      //kdnorm += dot3d(ni, nj) * exp(-0.5 * dvec.GetSquaredNorm() / var);
+      kdnorm += dotnn * exp(-0.5 * dvec.GetSquaredNorm() / var);
     }
 
   }
@@ -128,7 +131,7 @@ CurrentsSurfaceToSurfaceMetric
 
 vtkSmartPointer<vtkPolyData> 
 CurrentsSurfaceToSurfaceMetric
-::ComputeWeightedPDNormals(vtkPolyData* polyData)
+::ComputeWeightedPDNormals(vtkPolyData* polyData) const
 {
   // Make sure we only have triangles (not strips or polys)
   vtkSmartPointer<vtkTriangleFilter> trif =
@@ -138,27 +141,56 @@ CurrentsSurfaceToSurfaceMetric
   trif->PassLinesOff();
   trif->Update();
 
-  vtkSmartPointer<myvtkPolyDataNormals> normalf =
-    vtkSmartPointer<myvtkPolyDataNormals>::New();
-  normalf->SetInput(trif->GetOutput());
-  normalf->ComputePointNormalsOff();
-  normalf->ComputeCellNormalsOn();
-  normalf->SplittingOff();
-  normalf->ConsistencyOn();
-  normalf->AutoOrientNormalsOn(); // Should have closed surface
-  normalf->Update();
+  vtkSmartPointer<vtkPolyData> triPD = trif->GetOutput();
 
-  vtkSmartPointer<vtkPolyData> pd = normalf->GetOutput();
+  triPD->BuildLinks();
 
-  pd->BuildLinks();
+  // Compute cross product here
+  vtkSmartPointer<vtkFloatArray> newNormals = vtkFloatArray::New();
+  newNormals->SetNumberOfComponents(3);
+  newNormals->SetNumberOfTuples(triPD->GetNumberOfCells());
+  newNormals->SetName("Normals");
 
-  return pd;
+  for (vtkIdType i = 0; i < triPD->GetNumberOfCells(); i++)
+  {
+    vtkIdType nPts = 0;
+    vtkIdType* ptIds = 0;
+    triPD->GetCellPoints(i, nPts, ptIds);
+
+    if (nPts != 3)
+      throw std::runtime_error("Non triangle cell detected");
+
+    double x0[3];
+    triPD->GetPoint(ptIds[0], x0);
+    double x1[3];
+    triPD->GetPoint(ptIds[1], x1);
+    double x2[3];
+    triPD->GetPoint(ptIds[2], x2);
+
+    for (int d = 0; d < 3; d++)
+    {
+      x1[d] = x1[d] - x0[d];
+      x2[d] = x2[d] - x0[d];
+    }
+
+    //vtkScalar
+    double wnormal[3];
+    wnormal[0] = (x1[1] * x2[2] - x1[2] * x2[1]) / 2.0;
+    wnormal[1] = (x1[2] * x2[0] - x1[0] * x2[2]) / 2.0;
+    wnormal[2] = (x1[0] * x2[1] - x1[1] * x2[0]) / 2.0;
+
+    newNormals->SetTuple(i, wnormal);
+  }
+
+  triPD->GetCellData()->SetNormals(newNormals);
+
+  return triPD;
 }
 
 
-double
+CurrentsSurfaceToSurfaceMetric::MeasureType
 CurrentsSurfaceToSurfaceMetric
-::GetValue()
+::GetValue() const
 {
   // sum_i sum_j k(c_i, c_j) <n_i, n_j>
 
@@ -249,8 +281,13 @@ CurrentsSurfaceToSurfaceMetric
       double nj[3];
       normals1->GetTuple(neighbors[j], nj);
 
+      double dotnn = 0;
+      for (unsigned int d = 0; d < 3; d++)
+        dotnn += ni[d] * nj[d];
+
       VectorType dvec = ci - kdsamples->GetMeasurementVector(neighbors[j]);
-      double d = dot3d(ni, nj) * exp(-0.5 * dvec.GetSquaredNorm() / var);
+      //double d = dot3d(ni, nj) * exp(-0.5 * dvec.GetSquaredNorm() / var);
+      double d = dotnn * exp(-0.5 * dvec.GetSquaredNorm() / var);
       d /=  pow(2.0*var*vnl_math::pi, 3.0/2.0);
 
       match += d;
@@ -295,8 +332,13 @@ CurrentsSurfaceToSurfaceMetric
       double n_x[3];
       normals1->GetTuple(neighbors[j], n_x);
 
+      double dotnn = 0;
+      for (unsigned int d = 0; d < 3; d++)
+        dotnn += n_x[d] * n_y[d];
+
       VectorType dvec = kdsamples->GetMeasurementVector(neighbors[j]) - c_y;
-      double d = dot3d(n_x, n_y) * exp(-0.5 * dvec.GetSquaredNorm() / var);
+      //double d = dot3d(n_x, n_y) * exp(-0.5 * dvec.GetSquaredNorm() / var);
+      double d = dotnn * exp(-0.5 * dvec.GetSquaredNorm() / var);
       d *= -2.0 / pow(2.0*var*vnl_math::pi, 3.0/2.0);
 
       match += d;
@@ -306,5 +348,5 @@ CurrentsSurfaceToSurfaceMetric
 
   match += this->ComputeCurrentsNorm(polyData2);
 
-  return match
+  return match;
 }

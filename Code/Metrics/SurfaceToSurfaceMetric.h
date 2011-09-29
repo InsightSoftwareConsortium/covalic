@@ -4,15 +4,20 @@
 #include "itkSingleValuedCostFunction.h"
 
 #include "vtkPolyData.h"
+#include "vtkSmartPointer.h"
 
 class SurfaceToSurfaceMetric: public itk::SingleValuedCostFunction
 {
 public:
   /** Standard class typedefs. */
   typedef SurfaceToSurfaceMetric         Self;
-  typedef SingleValuedCostFunction   Superclass;
-  typedef SmartPointer< Self >       Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
+  typedef itk::SingleValuedCostFunction   Superclass;
+  typedef itk::SmartPointer< Self >       Pointer;
+  typedef itk::SmartPointer< const Self > ConstPointer;
+
+  typedef typename Superclass::MeasureType MeasureType;
+  typedef typename Superclass::ParametersType ParametersType;
+  typedef typename Superclass::DerivativeType DerivativeType;
 
   /** Run-time type information (and related methods). */
   itkTypeMacro(ImageToImageMetric, SingleValuedCostFunction);
@@ -26,12 +31,20 @@ public:
 // TODO:
   //void SetTransformParameters(p);
 
-  virtual double GetValue() = 0;
+  virtual MeasureType GetValue() const = 0;
+
+  virtual MeasureType GetValue(const ParametersType& p) const = 0;
+
+  virtual void GetDerivative(const ParametersType& p, DerivativeType& dp) const 
+  { itkExceptionMacro(<< "Not implemented"); }
+
+  virtual void GetValueAndDerivative(const ParametersType& p, MeasureType& v, DerivativeType& dp) const
+  { itkExceptionMacro(<< "Not implemented"); }
 
 protected:
 
-  vtkPolyData* m_FixedSurface;
-  vtkPolyData* m_MovingSurface;
+  vtkSmartPointer<vtkPolyData> m_FixedSurface;
+  vtkSmartPointer<vtkPolyData> m_MovingSurface;
 };
 
 #endif

@@ -1,11 +1,13 @@
 
-// Average surface distances, given two masks
+// Average boundary distances, given two image masks
 //
 // Both fixed and moving images must have the same unsigned type
 // Only 3D images for now
 
 #ifndef _AverageDistanceImageToImageMetric_h
 #define _AverageDistanceImageToImageMetric_h
+
+#include "itkImageToImageMetric.h"
 
 template <class TFixedImage, class TMovingImage>
 class AverageDistanceImageToImageMetric :
@@ -31,6 +33,8 @@ public:
     itk::ImageToImageMetric);
 
   typedef typename Superclass::MeasureType MeasureType;
+  typedef typename Superclass::TransformParametersType TransformParametersType;
+  typedef typename Superclass::DerivativeType DerivativeType;
 
   typedef typename TFixedImage::Pointer FixedImagePointer;
   typedef typename TFixedImage::PointType FixedImagePointType;
@@ -39,13 +43,14 @@ public:
 
   MeasureType GetValue() const;
 
-  MeasureType GetValue(const itk::Array<double>& p) const
+  MeasureType GetValue(const TransformParametersType& p) const
   { // TODO: apply transform with nearest neighbor interpolation
     return this->GetValue(); }
 
-  MeasureType GetDerivative(const itk::Array<double>& p) const
-  { itkExceptionMacro(<< "Not implemented"); return 0; }
-  virtual void GetDerivative(const itk::Array<double>& p, itk::Array<double>& q) const
+  void GetDerivative(const TransformParametersType& p, DerivativeType& dp) const
+  { itkExceptionMacro(<< "Not implemented"); }
+
+  void GetValueAndDerivative(const TransformParametersType& p, MeasureType& v, DerivativeType& dp) const
   { itkExceptionMacro(<< "Not implemented"); }
 
   void BlurringOn() { m_DoBlurring = true; }
