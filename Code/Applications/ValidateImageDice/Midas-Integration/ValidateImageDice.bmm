@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
   <executable>
-    <Name>ValidateDice</Name>
+    <Name>ValidateImageDice</Name>
     <Version>Not defined</Version>
-    <Path>FULL_PATH_TO/ValidateDice</Path>
+    <Path>FULL_PATH_TO/ValidateImageDice</Path>
     <Parameters>
       <Parameter>
         <Type>4</Type>

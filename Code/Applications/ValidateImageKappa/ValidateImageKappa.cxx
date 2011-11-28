@@ -1,5 +1,5 @@
 
-#include "JaccardOverlapImageToImageMetric.h"
+#include "CohenKappaImageToImageMetric.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -12,10 +12,11 @@
 #include <iostream>
 #include <string>
 
-#include "ValidateJaccardCLP.h"
+#include "ValidateImageKappaCLP.h"
+
 
 int
-validateJaccard(const char* fn1, const char* fn2, const char* outFile)
+validateImageKappa(const char* fn1, const char* fn2, const char* outFile)
 {
 
   itk::OutputWindow::SetInstance(itk::TextOutput::New());
@@ -40,15 +41,15 @@ validateJaccard(const char* fn1, const char* fn2, const char* outFile)
     Bmask = reader->GetOutput();
   }
 
-  typedef JaccardOverlapImageToImageMetric<ByteImageType, ByteImageType>
-    JaccardMetricType;
-  JaccardMetricType::Pointer diceMetric = JaccardMetricType::New();
-  diceMetric->SetFixedImage(Amask);
-  diceMetric->SetMovingImage(Bmask);
+  typedef CohenKappaImageToImageMetric<ByteImageType, ByteImageType>
+    CohenKappaMetricType;
+  CohenKappaMetricType::Pointer kappaMetric = CohenKappaMetricType::New();
+  kappaMetric->SetFixedImage(Amask);
+  kappaMetric->SetMovingImage(Bmask);
 
   std::ofstream outputfile;
   outputfile.open(outFile, std::ios::out);
-  outputfile << "Jaccard(A,B) = " <<  diceMetric->GetValue() << std::endl;
+  outputfile << "Kappa(A,B) = " <<  kappaMetric->GetValue() << std::endl;
   outputfile.close();
 
   return 0;
@@ -62,7 +63,8 @@ main(int argc, char** argv)
 
   try
   {
-  validateJaccard(inputVolume1.c_str(), inputVolume2.c_str(), outputFile.c_str());
+    validateImageKappa(
+      inputVolume1.c_str(), inputVolume2.c_str(), outputFile.c_str());
   } 
   catch (itk::ExceptionObject& e)
   {

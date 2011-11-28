@@ -1,6 +1,6 @@
 # If you follow the SampleCLIApplication format, you only need to change the
 # following line to configure this CMakeLists.txt file.
-project( ValidateKappa )
+project( ValidateSurfaceCurrents )
 
 cmake_minimum_required( VERSION 2.8 )
 if( COMMAND CMAKE_POLICY )
@@ -27,6 +27,7 @@ include( ${GenerateCLP_USE_FILE} )
 # Include Utilities to access covalicCLIHelperFunctions.h
 include_directories(
   ${Covalic_SOURCE_DIR}/Utilities
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Common
   )
 
 set( PROJECT_SOURCE
@@ -39,10 +40,15 @@ generateclp( PROJECT_SOURCE ${PROJECT_NAME}.xml )
 add_library( ${PROJECT_NAME}Module SHARED ${PROJECT_SOURCE} )
 set_target_properties( ${PROJECT_NAME}Module
                        PROPERTIES COMPILE_FLAGS "-Dmain=ModuleEntryPoint" )
-target_link_libraries( ${PROJECT_NAME}Module ${ITK_LIBRARIES} )
+target_link_libraries( ${PROJECT_NAME}Module ${ITK_LIBRARIES} ${VTK_LIBRARIES})
 
-add_executable( ${PROJECT_NAME}
-                ${Covalic_SOURCE_DIR}/Utilities/covalicCLISharedLibraryWrapper.cxx )
+add_executable(
+  ${PROJECT_NAME}
+  ../Common/surfio.cxx
+  ${Covalic_SOURCE_DIR}/Code/Metrics/SurfaceToSurfaceMetric.cxx
+  ${Covalic_SOURCE_DIR}/Code/Metrics/CurrentsSurfaceToSurfaceMetric.cxx
+  ${Covalic_SOURCE_DIR}/Utilities/covalicCLISharedLibraryWrapper.cxx
+)
 target_link_libraries( ${PROJECT_NAME} ${PROJECT_NAME}Module )
 
 slicer3_set_plugins_output_path( ${PROJECT_NAME}Module )

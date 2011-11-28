@@ -12,11 +12,11 @@
 #include <iostream>
 #include <string>
 
-#include "ValidateAveDistCLP.h"
+#include "ValidateImageAveDistCLP.h"
 
 
 int
-validateAveDist(const char* fn1, const char* fn2, const char* outFile)
+validateImageAveDist(const char* fn1, const char* fn2, const char* outFile)
 {
 
   itk::OutputWindow::SetInstance(itk::TextOutput::New());
@@ -63,7 +63,8 @@ main(int argc, char** argv)
 
   try
   {
-    validateAveDist(inputVolume1.c_str(), inputVolume2.c_str(), outputFile.c_str());
+    validateImageAveDist(
+      inputVolume1.c_str(), inputVolume2.c_str(), outputFile.c_str());
   } 
   catch (itk::ExceptionObject& e)
   {

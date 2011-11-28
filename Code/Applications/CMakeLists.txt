@@ -30,8 +30,14 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Metrics
 )
 
-add_subdirectory(ValidateDice)
-add_subdirectory(ValidateJaccard)
+# Metrics for binary images
+add_subdirectory(ValidateImageDice)
+add_subdirectory(ValidateImageJaccard)
+add_subdirectory(ValidateImageAveDist)
 
-add_subdirectory(ValidateKappa)
-add_subdirectory(ValidateAveDist)
+# Metrics for label images
+add_subdirectory(ValidateImageKappa)
+
+# Metrics for surfaces
+add_subdirectory(ValidateSurfaceCurrents)
+add_subdirectory(ValidateSurfaceHaussdorff)

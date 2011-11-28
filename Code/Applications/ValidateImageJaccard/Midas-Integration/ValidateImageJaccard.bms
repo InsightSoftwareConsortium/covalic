@@ -1,0 +1,27 @@
+# Should the script end in case of errors
+ExitOnError(1)
+
+# Imported parameters from Midas
+Include(ValidateImageJaccard.config.bms)
+
+
+# currently this is really HACKish:
+# I expect only two files from the cart, so
+# I just grab the first one and the second one.
+
+# get the first file
+GetParam(file1 ${cfg_input_cart} 0)
+echo(${file1})
+
+# get the second file
+GetParam(file2 ${cfg_input_cart} 1)
+echo(${file2})
+
+# Set the Application Properties to be passed to the condor scripts
+SetApp(validateImageJaccard @ValidateImageJaccard)
+SetAppOption(validateImageJaccard.inputVolume1 ${file1})
+SetAppOption(validateImageJaccard.inputVolume2 ${file2})
+SetAppOption(validateImageJaccard.outputfile ${cfg_output_file})
+
+CondorPostScript(validateImageJaccard ${cfg_condorpostscript} ${cfg_midas_baseURL} ${cfg_itemid} ${cfg_email} ${cfg_appname} ${cfg_apikey} ${cfg_output_directory} ${cfg_output_file}) 
+Run(output ${validateImageJaccard})

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
   <executable>
-    <Name>ValidateJaccard</Name>
+    <Name>ValidateImageJaccard</Name>
     <Version>Not defined</Version>
-    <Path>FULL_PATH_TO/ValidateJaccard</Path>
+    <Path>FULL_PATH_TO/ValidateImageJaccard</Path>
     <Parameters>
       <Parameter>
         <Type>4</Type>

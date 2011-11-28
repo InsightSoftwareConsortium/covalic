@@ -12,11 +12,11 @@
 #include <iostream>
 #include <string>
 
-#include "ValidateDiceCLP.h"
+#include "ValidateImageDiceCLP.h"
 
 
 int
-validateDice(const char* fn1, const char* fn2, const char* outFile)
+validateImageDice(const char* fn1, const char* fn2, const char* outFile)
 {
 
   itk::OutputWindow::SetInstance(itk::TextOutput::New());
@@ -63,7 +63,8 @@ main(int argc, char** argv)
 
   try
   {
-    validateDice(inputVolume1.c_str(), inputVolume2.c_str(), outputFile.c_str());
+    validateImageDice(
+      inputVolume1.c_str(), inputVolume2.c_str(), outputFile.c_str());
   } 
   catch (itk::ExceptionObject& e)
   {

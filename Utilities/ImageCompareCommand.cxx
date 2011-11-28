@@ -21,7 +21,12 @@
 #include "itkImageFileWriter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkExtractImageFilter.h"
-#include "itkDifferenceImageFilter.h"
+
+#if ITK_VERSION_MAJOR < 4
+  #include "itkDifferenceImageFilter.h"
+#else
+  #include "itkTestingComparisonImageFilter.h"
+#endif
 
 #include "metaCommand.h"
 
@@ -288,7 +293,11 @@ int RegressionTestImage ( const char *testImageFilename,
     }
 
   // Now compare the two images
+#if ITK_VERSION_MAJOR < 4
   typedef itk::DifferenceImageFilter<ImageType, ImageType> DiffType;
+#else
+  typedef itk::Testing::ComparisonImageFilter<ImageType, ImageType> DiffType;
+#endif
   DiffType::Pointer diff = DiffType::New();
   diff->SetValidInput( baselineReader->GetOutput() );
   diff->SetTestInput( testReader->GetOutput() );

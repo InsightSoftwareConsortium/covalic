@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <MIDAS>
   <BatchMake>
-    <title>ValidateJaccard demo</title>
+    <title>ValidateImageDice demo</title>
     
     <!-- Note: Use CDATA to allow html tag within a XML element -->
-    <description><![CDATA[For each element of the <b>input cart</b>, pair it with every other element in the input cart, and run the ValidateJaccard application on the pairing.  The results are stored in the output_file designated by the user]]></description>
+    <description><![CDATA[For each element of the <b>input cart</b>, pair it with every other element in the input cart, and run the ValidateImageDice application on the pairing.  The results are????]]></description>
     
     <version>0.1</version>
     
@@ -12,7 +12,7 @@
     <!-- Applications used in the corresponding bms file -->
     <!-- Nota: element "applications" is optional  -->
     <applications>
-      <application>ValidateJaccard</application>
+      <application>ValidateImageDice</application>
     </applications>
     
     <!-- Batchmake parameters -->
@@ -27,7 +27,7 @@
          <name>output_file</name>
          <label>Output File Name</label>
          <description>Name of the output file to write results to</description>
-         <default>validatejaccard.out</default>
+         <default>validatedice.out</default>
        </string>
 
 
