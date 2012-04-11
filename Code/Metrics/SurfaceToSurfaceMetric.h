@@ -15,9 +15,9 @@ public:
   typedef itk::SmartPointer< Self >       Pointer;
   typedef itk::SmartPointer< const Self > ConstPointer;
 
-  typedef typename Superclass::MeasureType MeasureType;
-  typedef typename Superclass::ParametersType ParametersType;
-  typedef typename Superclass::DerivativeType DerivativeType;
+  typedef Superclass::MeasureType MeasureType;
+  typedef Superclass::ParametersType ParametersType;
+  typedef Superclass::DerivativeType DerivativeType;
 
   /** Run-time type information (and related methods). */
   itkTypeMacro(ImageToImageMetric, SingleValuedCostFunction);
