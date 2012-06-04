@@ -1,28 +1,28 @@
 
-#ifndef _JaccardOverlapImageToImageMetric_txx
-#define _JaccardOverlapImageToImageMetric_txx
+#ifndef _SpecificityImageToImageMetric_txx
+#define _SpecificityImageToImageMetric_txx
 
-#include "JaccardOverlapImageToImageMetric.h"
+#include "SpecificityImageToImageMetric.h"
 
 #include "itkImageRegionIterator.h"
 
 template <class TFixedImage, class TMovingImage>
-JaccardOverlapImageToImageMetric<TFixedImage, TMovingImage>
-::JaccardOverlapImageToImageMetric()
+SpecificityImageToImageMetric<TFixedImage, TMovingImage>
+::SpecificityImageToImageMetric()
 {
 
 }
 
 template <class TFixedImage, class TMovingImage>
-JaccardOverlapImageToImageMetric<TFixedImage, TMovingImage>
-::~JaccardOverlapImageToImageMetric()
+SpecificityImageToImageMetric<TFixedImage, TMovingImage>
+::~SpecificityImageToImageMetric()
 {
 
 }
 
 template <class TFixedImage, class TMovingImage>
-typename JaccardOverlapImageToImageMetric<TFixedImage,TMovingImage>::MeasureType
-JaccardOverlapImageToImageMetric<TFixedImage, TMovingImage>
+typename SpecificityImageToImageMetric<TFixedImage,TMovingImage>::MeasureType
+SpecificityImageToImageMetric<TFixedImage, TMovingImage>
 ::GetValue() const
 {
   if (Superclass::m_FixedImage.IsNull() || Superclass::m_MovingImage.IsNull())
@@ -35,9 +35,9 @@ JaccardOverlapImageToImageMetric<TFixedImage, TMovingImage>
   FixedIteratorType fixedIt(Superclass::m_FixedImage, Superclass::m_FixedImage->GetRequestedRegion());
   MovingIteratorType movingIt(Superclass::m_MovingImage, Superclass::m_MovingImage->GetRequestedRegion());
 
-  // Get intersection and individual set sizes
-  unsigned int numIntersect = 0;
-  unsigned int numUnion = 0;
+  // Get count of true negatives and false positives
+  unsigned int numTrueNegatives = 0;
+  unsigned int numFalsePositives = 0;
 
   fixedIt.GoToBegin();
   movingIt.GoToBegin();
@@ -49,17 +49,17 @@ JaccardOverlapImageToImageMetric<TFixedImage, TMovingImage>
     bool a = (r != 0);
     bool b = (c != 0);
       
-    if (a && b)
-      numIntersect++;
+    if (!a && !b)
+      numTrueNegatives++;
 
-    if (a || b)
-      numUnion++;
+    if (!a && b)
+      numFalsePositives++;
 
     ++fixedIt;
     ++movingIt;
   }
 
-  return (double)numIntersect / (numUnion + 1e-20);
+  return numTrueNegatives / (numTrueNegatives + numFalsePositives + 1e-20);
 }
 
 #endif

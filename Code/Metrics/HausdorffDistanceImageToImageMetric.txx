@@ -1,6 +1,6 @@
 
-#ifndef _AverageDistanceImageToImageMetric_txx
-#define _AverageDistanceImageToImageMetric_txx
+#ifndef _HausdorffDistanceImageToImageMetric_txx
+#define _HausdorffDistanceImageToImageMetric_txx
 
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkDiscreteGaussianImageFilter.h"
@@ -22,27 +22,29 @@
 
 #include "vnl/vnl_math.h"
 
-#include "AverageDistanceImageToImageMetric.h"
+#include "HausdorffDistanceImageToImageMetric.h"
+
+#include <cmath>
 
 
 template <class TFixedImage, class TMovingImage>
-AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
-::AverageDistanceImageToImageMetric()
+HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
+::HausdorffDistanceImageToImageMetric()
 {
   m_DoBlurring = false;
 }
 
 template <class TFixedImage, class TMovingImage>
-AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
-::~AverageDistanceImageToImageMetric()
+HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
+::~HausdorffDistanceImageToImageMetric()
 {
 
 }
 
 template <class TFixedImage, class TMovingImage>
 double
-AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
-::Compute3DNonSymmetricDistance(
+HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
+::Compute3DMaxDistance(
   const TFixedImage* img1, const TMovingImage* img2) const
 {
   typedef itk::Image<float, FixedImageType::ImageDimension> FloatImageType;
@@ -166,8 +168,7 @@ AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
     return 0.0;
   }
 
-  double sumD = 0;
-  double sumArea = 0;
+  double maxD = 0;
 
   for (vtkIdType k = 0; k < boundaryPD->GetNumberOfCells(); k++)
   {
@@ -208,11 +209,6 @@ AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
     crossp[1] = (x1[2] * x2[0] - x1[0] * x2[2]) / 2.0;
     crossp[2] = (x1[0] * x2[1] - x1[1] * x2[0]) / 2.0;
 
-    double area = 0;
-    for (int d = 0; d < 3; d++)
-      area += crossp[d] * crossp[d];
-    area /= 2.0;
-
     // Compute distance
     typename FloatImageType::PointType p;
     p[0] = c[0];
@@ -226,18 +222,16 @@ AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
 
     double d = fabs(distInterp2->Evaluate(p));
 
-    sumD += vnl_math_abs(d);
-    sumArea += area;
+    if (d > maxD)
+      maxD = d;
   }
 
-  double meanD = sumD / sumArea;
-
-  return meanD;
+  return maxD;
 }
 
 template <class TFixedImage, class TMovingImage>
-typename AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>::MeasureType
-AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
+typename HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>::MeasureType
+HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
 ::GetValue() const
 {
   if (Superclass::m_FixedImage.IsNull() || Superclass::m_MovingImage.IsNull())
@@ -252,11 +246,14 @@ AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
 
   if (dim == 3)
   {
-    double d12 = this->Compute3DNonSymmetricDistance(
+    double d12 = this->Compute3DMaxDistance(
       Superclass::m_FixedImage, Superclass::m_MovingImage);
-    double d21 = this->Compute3DNonSymmetricDistance(
+    double d21 = this->Compute3DMaxDistance(
       Superclass::m_MovingImage, Superclass::m_FixedImage);
-    return 0.5 * (d12 + d21);
+    if (d12 > d21)
+      return d12;
+    else
+      return d21;
   }
 
   itkExceptionMacro(<< "Not implemented");

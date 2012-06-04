@@ -1,18 +1,20 @@
 
-// Dice similarity coefficient
-// Input: binary images
-// 2 * intersect(A, B) / (|A| + |B|)
+// Hausdorff boundary distances, given two binary image masks
+//
+// Both fixed and moving images should have the same unsigned type
+// Only handles 3D images
 
-#ifndef _DiceOverlapImageToImageMetric_h
-#define _DiceOverlapImageToImageMetric_h
+#ifndef _HausdorffDistanceImageToImageMetric_h
+#define _HausdorffDistanceImageToImageMetric_h
 
 #include "AbstractValidationMetric.h"
 
 #include "itkImageToImageMetric.h"
-#include "itkSmartPointer.h"
+
+#include "vnl/vnl_math.h"
 
 template <class TFixedImage, class TMovingImage>
-class ITK_EXPORT DiceOverlapImageToImageMetric :
+class HausdorffDistanceImageToImageMetric :
   public itk::ImageToImageMetric<TFixedImage, TMovingImage>, public AbstractValidationMetric
 {
 
@@ -20,12 +22,12 @@ public:
 
   // Validation metric properties
   bool IsInputBinary() { return true; }
-  bool IsSymmetric() { return true; }
-  double GetBestScore() { return 1.0; }
-  double GetWorstScore() { return 0.0; }
+  bool IsSymmetric() { return false; }
+  double GetBestScore() { return 0; }
+  double GetWorstScore() { return vnl_huge_val(1.0); }
 
   /** Standard class typedefs. */
-  typedef DiceOverlapImageToImageMetric           Self;
+  typedef HausdorffDistanceImageToImageMetric           Self;
   typedef itk::ImageToImageMetric<TFixedImage, TMovingImage> Superclass;
   typedef itk::SmartPointer<Self>                            Pointer;
   typedef itk::SmartPointer<const Self>                      ConstPointer;
@@ -37,14 +39,18 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(DiceOverlapImageToImageMetric,
+  itkTypeMacro(HausdorffDistanceImageToImageMetric,
     itk::ImageToImageMetric);
 
   typedef typename Superclass::MeasureType MeasureType;
   typedef typename Superclass::TransformParametersType TransformParametersType;
   typedef typename Superclass::DerivativeType DerivativeType;
 
-  /**  Get the value for single valued optimizers. */
+  typedef typename TFixedImage::Pointer FixedImagePointer;
+  typedef typename TFixedImage::PointType FixedImagePointType;
+  typedef typename TFixedImage::SizeType FixedImageSizeType;
+  typedef typename TFixedImage::SpacingType FixedImageSpacingType;
+
   MeasureType GetValue() const;
 
   MeasureType GetValue(const TransformParametersType& p) const
@@ -57,17 +63,24 @@ public:
   void GetValueAndDerivative(const TransformParametersType& p, MeasureType& v, DerivativeType& dp) const
   { itkExceptionMacro(<< "Not implemented"); }
 
+  void BlurringOn() { m_DoBlurring = true; }
+  void BlurringOff() { m_DoBlurring = false; }
+
 protected:
 
-  DiceOverlapImageToImageMetric();
-  virtual ~DiceOverlapImageToImageMetric();
+  HausdorffDistanceImageToImageMetric();
+  ~HausdorffDistanceImageToImageMetric();
 
-// TODO: transform member, default to identity
+  double Compute3DMaxDistance(const FixedImageType*, const MovingImageType*) const;
+
+private:
+
+  bool m_DoBlurring;
 
 };
 
-#ifndef ITK_MANUAL_INSTANTIATION
-#include "DiceOverlapImageToImageMetric.txx"
+#ifndef MU_MANUAL_INSTANTIATION
+#include "HausdorffDistanceImageToImageMetric.txx"
 #endif
 
 #endif

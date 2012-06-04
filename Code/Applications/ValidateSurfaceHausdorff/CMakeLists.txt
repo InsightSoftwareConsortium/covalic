@@ -1,6 +1,6 @@
 # If you follow the SampleCLIApplication format, you only need to change the
 # following line to configure this CMakeLists.txt file.
-project( ValidateSurfaceHaussdorff )
+project( ValidateSurfaceHausdorff )
 
 cmake_minimum_required( VERSION 2.8 )
 if( COMMAND CMAKE_POLICY )
@@ -46,7 +46,7 @@ add_executable(
   ${PROJECT_NAME}
   ../Common/surfio.cxx
   ${Covalic_SOURCE_DIR}/Code/Metrics/SurfaceToSurfaceMetric.cxx
-  ${Covalic_SOURCE_DIR}/Code/Metrics/HaussdorffDistanceSurfaceToSurfaceMetric.cxx
+  ${Covalic_SOURCE_DIR}/Code/Metrics/HausdorffDistanceSurfaceToSurfaceMetric.cxx
   ${Covalic_SOURCE_DIR}/Utilities/covalicCLISharedLibraryWrapper.cxx
 )
 target_link_libraries( ${PROJECT_NAME} ${PROJECT_NAME}Module )

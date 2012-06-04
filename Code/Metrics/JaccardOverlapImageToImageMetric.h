@@ -6,15 +6,23 @@
 #ifndef _JaccardOverlapImageToImageMetric_h
 #define _JaccardOverlapImageToImageMetric_h
 
+#include "AbstractValidationMetric.h"
+
 #include "itkImageToImageMetric.h"
 #include "itkSmartPointer.h"
 
 template <class TFixedImage, class TMovingImage>
 class ITK_EXPORT JaccardOverlapImageToImageMetric :
-  public itk::ImageToImageMetric<TFixedImage, TMovingImage>
+  public itk::ImageToImageMetric<TFixedImage, TMovingImage>, public AbstractValidationMetric
 {
 
 public:
+
+  // Validation metric properties
+  bool IsInputBinary() { return true; }
+  bool IsSymmetric() { return true; }
+  double GetBestScore() { return 1.0; }
+  double GetWorstScore() { return 0.0; }
 
   /** Standard class typedefs. */
   typedef JaccardOverlapImageToImageMetric           Self;

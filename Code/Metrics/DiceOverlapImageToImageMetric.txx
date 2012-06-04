@@ -1,5 +1,6 @@
 
 #ifndef _DiceOverlapImageToImageMetric_txx
+#define _DiceOverlapImageToImageMetric_txx
 
 #include "DiceOverlapImageToImageMetric.h"
 

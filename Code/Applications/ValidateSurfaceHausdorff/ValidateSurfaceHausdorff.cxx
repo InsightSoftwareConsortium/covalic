@@ -1,5 +1,5 @@
 
-#include "HaussdorffDistanceSurfaceToSurfaceMetric.h"
+#include "HausdorffDistanceSurfaceToSurfaceMetric.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -15,13 +15,13 @@
 #include <iostream>
 #include <string>
 
-#include "ValidateSurfaceHaussdorffCLP.h"
+#include "ValidateSurfaceHausdorffCLP.h"
 
 #include "surfio.h"
 
 
 int
-validateSurfaceHaussdorff(
+validateSurfaceHausdorff(
   const char* fn1, const char* fn2, const char* outFile)
 {
 
@@ -31,13 +31,13 @@ validateSurfaceHaussdorff(
 
   vtkSmartPointer<vtkPolyData> surf2 = readSurface(fn2);
 
-  HaussdorffDistanceSurfaceToSurfaceMetric::Pointer haussdMetric = HaussdorffDistanceSurfaceToSurfaceMetric::New();
+  HausdorffDistanceSurfaceToSurfaceMetric::Pointer haussdMetric = HausdorffDistanceSurfaceToSurfaceMetric::New();
   haussdMetric->SetFixedSurface(surf1);
   haussdMetric->SetMovingSurface(surf2);
 
   std::ofstream outputfile;
   outputfile.open(outFile, std::ios::out);
-  outputfile << "Haussdorff(A,B) = " <<  haussdMetric->GetValue() << std::endl;
+  outputfile << "Hausdorff(A,B) = " <<  haussdMetric->GetValue() << std::endl;
   outputfile.close();
 
   return 0;
@@ -51,7 +51,7 @@ main(int argc, char** argv)
 
   try
   {
-    validateSurfaceHaussdorff(
+    validateSurfaceHausdorff(
       inputSurface1.c_str(), inputSurface2.c_str(),
       outputFile.c_str());
   } 

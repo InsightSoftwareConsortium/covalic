@@ -40,4 +40,4 @@ add_subdirectory(ValidateImageKappa)
 
 # Metrics for surfaces
 add_subdirectory(ValidateSurfaceCurrents)
-add_subdirectory(ValidateSurfaceHaussdorff)
+add_subdirectory(ValidateSurfaceHausdorff)

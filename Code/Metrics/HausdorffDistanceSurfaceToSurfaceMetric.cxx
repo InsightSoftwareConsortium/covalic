@@ -1,10 +1,10 @@
 
-#include "HaussdorffDistanceSurfaceToSurfaceMetric.h"
+#include "HausdorffDistanceSurfaceToSurfaceMetric.h"
 
 #include <cmath>
 
 void
-HaussdorffDistanceSurfaceToSurfaceMetric
+HausdorffDistanceSurfaceToSurfaceMetric
 ::SetFixedSurface(vtkPolyData* pd)
 {
   SurfaceToSurfaceMetric::m_FixedSurface = pd;
@@ -15,7 +15,7 @@ HaussdorffDistanceSurfaceToSurfaceMetric
 }
 
 void
-HaussdorffDistanceSurfaceToSurfaceMetric
+HausdorffDistanceSurfaceToSurfaceMetric
 ::SetMovingSurface(vtkPolyData* pd)
 {
   SurfaceToSurfaceMetric::m_MovingSurface = pd;
@@ -25,8 +25,8 @@ HaussdorffDistanceSurfaceToSurfaceMetric
   m_MovingPointLocator->BuildLocator();
 }
 
-HaussdorffDistanceSurfaceToSurfaceMetric::MeasureType
-HaussdorffDistanceSurfaceToSurfaceMetric
+HausdorffDistanceSurfaceToSurfaceMetric::MeasureType
+HausdorffDistanceSurfaceToSurfaceMetric
 ::GetValue() const
 {
   vtkPoints* fixedPts = this->GetFixedSurface()->GetPoints();
@@ -78,7 +78,7 @@ HaussdorffDistanceSurfaceToSurfaceMetric
     }
     dist_i = sqrt(dist_i);
 
-    if (dist_i > maxDist1)
+    if (dist_i > maxDist2)
       maxDist2 = dist_i;
   }
 

@@ -1,20 +1,30 @@
 
-// Average boundary distances, given two image masks
+// Average boundary distances, given two binary image masks
 //
-// Both fixed and moving images must have the same unsigned type
-// Only 3D images for now
+// Both fixed and moving images should have the same unsigned type
+// Only handles 3D images
 
 #ifndef _AverageDistanceImageToImageMetric_h
 #define _AverageDistanceImageToImageMetric_h
 
+#include "AbstractValidationMetric.h"
+
 #include "itkImageToImageMetric.h"
+
+#include "vnl/vnl_math.h"
 
 template <class TFixedImage, class TMovingImage>
 class AverageDistanceImageToImageMetric :
-  public itk::ImageToImageMetric<TFixedImage, TMovingImage>
+  public itk::ImageToImageMetric<TFixedImage, TMovingImage>, public AbstractValidationMetric
 {
 
 public:
+
+  // Validation metric properties
+  bool IsInputBinary() { return true; }
+  bool IsSymmetric() { return true; }
+  double GetBestScore() { return 0; }
+  double GetWorstScore() { return vnl_huge_val(1.0); }
 
   /** Standard class typedefs. */
   typedef AverageDistanceImageToImageMetric           Self;

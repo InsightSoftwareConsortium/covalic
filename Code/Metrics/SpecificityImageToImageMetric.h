@@ -1,10 +1,10 @@
 
-// Dice similarity coefficient
-// Input: binary images
-// 2 * intersect(A, B) / (|A| + |B|)
+// Specificity metric
+// Input: binary images, where fixed image denotes truth
+// #true negatives / (#true negatives + #false positives)
 
-#ifndef _DiceOverlapImageToImageMetric_h
-#define _DiceOverlapImageToImageMetric_h
+#ifndef _SpecificityImageToImageMetric_h
+#define _SpecificityImageToImageMetric_h
 
 #include "AbstractValidationMetric.h"
 
@@ -12,7 +12,7 @@
 #include "itkSmartPointer.h"
 
 template <class TFixedImage, class TMovingImage>
-class ITK_EXPORT DiceOverlapImageToImageMetric :
+class ITK_EXPORT SpecificityImageToImageMetric :
   public itk::ImageToImageMetric<TFixedImage, TMovingImage>, public AbstractValidationMetric
 {
 
@@ -20,12 +20,13 @@ public:
 
   // Validation metric properties
   bool IsInputBinary() { return true; }
-  bool IsSymmetric() { return true; }
+  bool IsSymmetric() { return false; }
   double GetBestScore() { return 1.0; }
   double GetWorstScore() { return 0.0; }
 
+
   /** Standard class typedefs. */
-  typedef DiceOverlapImageToImageMetric           Self;
+  typedef SpecificityImageToImageMetric           Self;
   typedef itk::ImageToImageMetric<TFixedImage, TMovingImage> Superclass;
   typedef itk::SmartPointer<Self>                            Pointer;
   typedef itk::SmartPointer<const Self>                      ConstPointer;
@@ -37,7 +38,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(DiceOverlapImageToImageMetric,
+  itkTypeMacro(SpecificityImageToImageMetric,
     itk::ImageToImageMetric);
 
   typedef typename Superclass::MeasureType MeasureType;
@@ -59,15 +60,15 @@ public:
 
 protected:
 
-  DiceOverlapImageToImageMetric();
-  virtual ~DiceOverlapImageToImageMetric();
+  SpecificityImageToImageMetric();
+  virtual ~SpecificityImageToImageMetric();
 
 // TODO: transform member, default to identity
 
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "DiceOverlapImageToImageMetric.txx"
+#include "SpecificityImageToImageMetric.txx"
 #endif
 
 #endif

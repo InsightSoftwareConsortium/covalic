@@ -1,7 +1,7 @@
 
 #include "CurrentsSurfaceToSurfaceMetric.h"
 #include "ClosestDistanceSurfaceToSurfaceMetric.h"
-#include "HaussdorffDistanceSurfaceToSurfaceMetric.h"
+#include "HausdorffDistanceSurfaceToSurfaceMetric.h"
 
 #include "itkOutputWindow.h"
 #include "itkTextOutput.h"
@@ -60,16 +60,16 @@ testMetrics()
 
   std::cout << "Closest(A,A) = " <<  closestMetric->GetValue() << std::endl;
 
-  HaussdorffDistanceSurfaceToSurfaceMetric::Pointer haussdMetric = HaussdorffDistanceSurfaceToSurfaceMetric::New();
+  HausdorffDistanceSurfaceToSurfaceMetric::Pointer haussdMetric = HausdorffDistanceSurfaceToSurfaceMetric::New();
   haussdMetric->SetFixedSurface(spherePD1);
   haussdMetric->SetMovingSurface(spherePD2);
 
-  std::cout << "Haussdorff(A,B) = " <<  haussdMetric->GetValue() << std::endl;
+  std::cout << "Hausdorff(A,B) = " <<  haussdMetric->GetValue() << std::endl;
 
   haussdMetric->SetFixedSurface(spherePD1);
   haussdMetric->SetMovingSurface(spherePD1);
 
-  std::cout << "Haussdorff(A,A) = " <<  haussdMetric->GetValue() << std::endl;
+  std::cout << "Hausdorff(A,A) = " <<  haussdMetric->GetValue() << std::endl;
 
   CurrentsSurfaceToSurfaceMetric::Pointer currMetric = CurrentsSurfaceToSurfaceMetric::New();
   currMetric->SetFixedSurface(spherePD1);

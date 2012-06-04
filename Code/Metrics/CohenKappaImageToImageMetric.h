@@ -9,14 +9,22 @@
 #ifndef _CohenKappaImageToImageMetric_h
 #define _CohenKappaImageToImageMetric_h
 
+#include "AbstractValidationMetric.h"
+
 #include "itkImageToImageMetric.h"
 
 template <class TFixedImage, class TMovingImage>
 class CohenKappaImageToImageMetric :
-  public itk::ImageToImageMetric<TFixedImage, TMovingImage>
+  public itk::ImageToImageMetric<TFixedImage, TMovingImage>, public AbstractValidationMetric
 {
 
 public:
+
+ // Validation metric properties
+  bool IsInputBinary() { return false; }
+  bool IsSymmetric() { return true; }
+  double GetBestScore() { return 1.0; }
+  double GetWorstScore() { return 0.0; }
 
   /** Standard class typedefs. */
   typedef CohenKappaImageToImageMetric           Self;

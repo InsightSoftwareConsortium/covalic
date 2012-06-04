@@ -28,6 +28,7 @@ set(VTK_LIBRARIES
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Converters
   ${CMAKE_CURRENT_SOURCE_DIR}/../Metrics
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Applications/Common
 )
 
 add_executable(testImageMetrics testImageMetrics.cxx)
@@ -35,9 +36,13 @@ add_executable(testSurfMetrics
   testSurfMetrics.cxx
   ../Metrics/SurfaceToSurfaceMetric.cxx
   ../Metrics/ClosestDistanceSurfaceToSurfaceMetric.cxx
-  ../Metrics/HaussdorffDistanceSurfaceToSurfaceMetric.cxx
+  ../Metrics/HausdorffDistanceSurfaceToSurfaceMetric.cxx
   ../Metrics/CurrentsSurfaceToSurfaceMetric.cxx
 )
+add_executable(randomizeLabel randomizeLabel.cxx)
+add_executable(validateLabelImages validateLabelImages.cxx)
 
 target_link_libraries(testImageMetrics ${ITK_LIBRARIES} ${VTK_LIBRARIES})
 target_link_libraries(testSurfMetrics ${ITK_LIBRARIES} ${VTK_LIBRARIES})
+target_link_libraries(randomizeLabel ${ITK_LIBRARIES})
+target_link_libraries(validateLabelImages ${ITK_LIBRARIES} ${VTK_LIBRARIES})
