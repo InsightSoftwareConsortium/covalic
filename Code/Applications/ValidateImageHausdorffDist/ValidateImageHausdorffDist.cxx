@@ -1,5 +1,5 @@
 
-#include "AverageDistanceImageToImageMetric.h"
+#include "HausdorffDistanceImageToImageMetric.h"
 #include "MultipleBinaryImageMetricsCalculator.h"
 
 #include "itkImage.h"
@@ -13,11 +13,11 @@
 #include <iostream>
 #include <string>
 
-#include "ValidateImageAveDistCLP.h"
+#include "ValidateImageHausdorffDistCLP.h"
 
 
 int
-validateImageAveDist(const char* fn1, const char* fn2, const char* outFile)
+validateImageHausdorffDist(const char* fn1, const char* fn2, const char* outFile)
 {
 
   itk::OutputWindow::SetInstance(itk::TextOutput::New());
@@ -45,17 +45,17 @@ validateImageAveDist(const char* fn1, const char* fn2, const char* outFile)
   std::ofstream outputfile;
   outputfile.open(outFile, std::ios::out);
 
-  typedef AverageDistanceImageToImageMetric<ImageType, ImageType>
-    AveDistMetricType;
+  typedef HausdorffDistanceImageToImageMetric<ImageType, ImageType>
+    HausdorffDistMetricType;
 
-  typedef MultipleBinaryImageMetricsCalculator<ImageType, ImageType, AveDistMetricType>
-    AveDistCalculatorType;
-  AveDistCalculatorType::Pointer calc = AveDistCalculatorType::New();
+  typedef MultipleBinaryImageMetricsCalculator<ImageType, ImageType, HausdorffDistMetricType>
+    HausdorffDistCalculatorType;
+  HausdorffDistCalculatorType::Pointer calc = HausdorffDistCalculatorType::New();
   calc->SetFixedImage(truthImg);
   calc->SetMovingImage(testImg);
   calc->Update();
   for (unsigned int i = 0; i < calc->GetNumberOfValues(); i++)
-    outputfile << "AveDist(" << "A_" << i+1 << ", B_" << i+1 << ") = " << calc->GetValue(i) << std::endl;
+    outputfile << "HausdorffDist(" << "A_" << i+1 << ", B_" << i+1 << ") = " << calc->GetValue(i) << std::endl;
 
   outputfile.close();
 
@@ -70,7 +70,7 @@ main(int argc, char** argv)
 
   try
   {
-    validateImageAveDist(
+    validateImageHausdorffDist(
       inputVolume1.c_str(), inputVolume2.c_str(), outputFile.c_str());
   } 
   catch (itk::ExceptionObject& e)

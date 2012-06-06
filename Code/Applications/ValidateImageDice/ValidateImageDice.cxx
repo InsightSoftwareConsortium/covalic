@@ -1,5 +1,6 @@
 
 #include "DiceOverlapImageToImageMetric.h"
+#include "MultipleBinaryImageMetricsCalculator.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -21,35 +22,41 @@ validateImageDice(const char* fn1, const char* fn2, const char* outFile)
 
   itk::OutputWindow::SetInstance(itk::TextOutput::New());
 
-  typedef itk::Image<unsigned char, 3> ByteImageType;
+  typedef itk::Image<unsigned short, 3> ImageType;
 
-  typedef itk::ImageFileReader<ByteImageType> ReaderType;
+  typedef itk::ImageFileReader<ImageType> ReaderType;
 
-  ByteImageType::Pointer Amask;
+  ImageType::Pointer truthImg;
   {
     ReaderType::Pointer reader = ReaderType::New();
     reader->SetFileName(fn1);
     reader->Update();
-    Amask = reader->GetOutput();
+    truthImg = reader->GetOutput();
   }
 
-  ByteImageType::Pointer Bmask;
+  ImageType::Pointer testImg;
   {
     ReaderType::Pointer reader = ReaderType::New();
     reader->SetFileName(fn2);
     reader->Update();
-    Bmask = reader->GetOutput();
+    testImg = reader->GetOutput();
   }
-
-  typedef DiceOverlapImageToImageMetric<ByteImageType, ByteImageType>
-    DiceMetricType;
-  DiceMetricType::Pointer diceMetric = DiceMetricType::New();
-  diceMetric->SetFixedImage(Amask);
-  diceMetric->SetMovingImage(Bmask);
 
   std::ofstream outputfile;
   outputfile.open(outFile, std::ios::out);
-  outputfile << "Dice(A,B) = " <<  diceMetric->GetValue() << std::endl;
+
+  typedef DiceOverlapImageToImageMetric<ImageType, ImageType>
+    DiceMetricType;
+
+  typedef MultipleBinaryImageMetricsCalculator<ImageType, ImageType, DiceMetricType>
+    DiceCalculatorType;
+  DiceCalculatorType::Pointer calc = DiceCalculatorType::New();
+  calc->SetFixedImage(truthImg);
+  calc->SetMovingImage(testImg);
+  calc->Update();
+  for (unsigned int i = 0; i < calc->GetNumberOfValues(); i++)
+    outputfile << "Dice(" << "A_" << i+1 << ", B_" << i+1 << ") = " << calc->GetValue(i) << std::endl;
+
   outputfile.close();
 
   return 0;

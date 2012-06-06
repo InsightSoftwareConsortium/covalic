@@ -30,10 +30,13 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Metrics
 )
 
-# Metrics for binary images
+# Metrics for binary images. Given label image, generates multiple outputs for each label
 add_subdirectory(ValidateImageDice)
 add_subdirectory(ValidateImageJaccard)
+add_subdirectory(ValidateImageSensitivity)
+add_subdirectory(ValidateImageSpecificity)
 add_subdirectory(ValidateImageAveDist)
+add_subdirectory(ValidateImageHausdorffDist)
 
 # Metrics for label images
 add_subdirectory(ValidateImageKappa)

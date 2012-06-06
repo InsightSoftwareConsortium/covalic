@@ -12,7 +12,7 @@ template <class TFixedImage, class TMovingImage>
 CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
 ::CohenKappaImageToImageMetric()
 {
-
+  m_IgnoreBackground = false;
 }
 
 template <class TFixedImage, class TMovingImage>
@@ -49,23 +49,32 @@ CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
     unsigned int r = (unsigned int)fixedIt.Get();
     unsigned int c = (unsigned int)movingIt.Get();
 
-    if (r != 0 && c != 0)
-    {
-      if (r > numLabels)
+    if (r > numLabels)
         numLabels = r;
 
-      if (c > numLabels)
-        numLabels = c;
+    if (c > numLabels)
+      numLabels = c;
 
-      ++numSamples;
+    if (m_IgnoreBackground)
+    {
+      if (r != 0 && c != 0)
+        numSamples++;
+    }
+    else
+    {
+      numSamples++;
     }
 
     ++fixedIt;
     ++movingIt;
   }
 
+  unsigned int numClasses = numLabels;
+  if (!m_IgnoreBackground)
+    numClasses++;
+
   // Fill in matrix that counts agreements/disagreements
-  vnl_matrix<unsigned int> countMatrix(numLabels, numLabels);
+  vnl_matrix<unsigned int> countMatrix(numClasses, numClasses, 0);
 
   fixedIt.GoToBegin();
   movingIt.GoToBegin();
@@ -74,9 +83,16 @@ CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
     unsigned int r = (unsigned int)fixedIt.Get();
     unsigned int c = (unsigned int)movingIt.Get();
 
-    if (r != 0 && c != 0)
+    if (m_IgnoreBackground)
     {
-      countMatrix(r-1, c-1) += 1;
+      if (r != 0 && c != 0)
+      {
+        countMatrix(r-1, c-1) += 1;
+      }
+    }
+    else
+    {
+      countMatrix(r, c) += 1;
     }
 
     ++fixedIt;
@@ -85,18 +101,18 @@ CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
 
   // Process the matrix
   unsigned int sumAgreements = 0;
-  for (unsigned int k = 0; k < numLabels; k++)
+  for (unsigned int k = 0; k < numClasses; k++)
     sumAgreements += countMatrix(k, k);
 
   double sumEF = 0;
-  for (unsigned int k = 0; k < numLabels; k++)
+  for (unsigned int k = 0; k < numClasses; k++)
   {
     unsigned int firstCount = 0;
-    for (unsigned int j = 0; j < numLabels; j++)
+    for (unsigned int j = 0; j < numClasses; j++)
       firstCount += countMatrix(k, j);
 
     unsigned int secondCount = 0;
-    for (unsigned int j = 0; j < numLabels; j++)
+    for (unsigned int j = 0; j < numClasses; j++)
       secondCount += countMatrix(j, k);
 
     sumEF += firstCount*secondCount;

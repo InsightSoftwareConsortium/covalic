@@ -46,6 +46,9 @@ public:
   typedef typename Superclass::TransformParametersType TransformParametersType;
   typedef typename Superclass::DerivativeType DerivativeType;
 
+  void IgnoreBackgroundOn() { m_IgnoreBackground = true; }
+  void IgnoreBackgroundOff() { m_IgnoreBackground = false; }
+
   MeasureType GetValue() const;
 
   MeasureType GetValue(const TransformParametersType& p) const
@@ -62,6 +65,8 @@ protected:
 
   CohenKappaImageToImageMetric();
   virtual ~CohenKappaImageToImageMetric();
+
+  bool m_IgnoreBackground;
 
 };
 

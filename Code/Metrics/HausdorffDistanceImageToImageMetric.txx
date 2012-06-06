@@ -170,6 +170,7 @@ HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
 
   double maxD = 0;
 
+#if 0
   for (vtkIdType k = 0; k < boundaryPD->GetNumberOfCells(); k++)
   {
     // Compute centroid
@@ -225,6 +226,30 @@ HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
     if (d > maxD)
       maxD = d;
   }
+#else
+  for (vtkIdType k = 0; k < boundaryPD->GetNumberOfPoints(); k++)
+  {
+    double x[3];
+    boundaryPD->GetPoint(k, x);
+
+    // Compute distance
+    typename FloatImageType::PointType p;
+    p[0] = x[0];
+    p[1] = x[1];
+    p[2] = x[2];
+
+    if (!distInterp2->IsInsideBuffer(p))
+    {
+      continue;
+    }
+
+    double d = fabs(distInterp2->Evaluate(p));
+
+    if (d > maxD)
+      maxD = d;
+  }
+
+#endif
 
   return maxD;
 }

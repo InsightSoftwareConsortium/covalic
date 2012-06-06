@@ -224,9 +224,9 @@ AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
       continue;
     }
 
-    double d = fabs(distInterp2->Evaluate(p));
+    double d = distInterp2->Evaluate(p);
 
-    sumD += vnl_math_abs(d);
+    sumD += vnl_math_abs(d) * area;
     sumArea += area;
   }
 

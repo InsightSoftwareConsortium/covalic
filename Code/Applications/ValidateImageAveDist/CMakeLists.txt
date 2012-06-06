@@ -27,6 +27,7 @@ include( ${GenerateCLP_USE_FILE} )
 # Include Utilities to access covalicCLIHelperFunctions.h
 include_directories(
   ${Covalic_SOURCE_DIR}/Utilities
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Common
   )
 
 set( PROJECT_SOURCE

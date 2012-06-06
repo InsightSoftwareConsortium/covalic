@@ -1,5 +1,6 @@
 
 #include "JaccardOverlapImageToImageMetric.h"
+#include "MultipleBinaryImageMetricsCalculator.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -14,41 +15,48 @@
 
 #include "ValidateImageJaccardCLP.h"
 
+
 int
 validateImageJaccard(const char* fn1, const char* fn2, const char* outFile)
 {
 
   itk::OutputWindow::SetInstance(itk::TextOutput::New());
 
-  typedef itk::Image<unsigned char, 3> ByteImageType;
+  typedef itk::Image<unsigned short, 3> ImageType;
 
-  typedef itk::ImageFileReader<ByteImageType> ReaderType;
+  typedef itk::ImageFileReader<ImageType> ReaderType;
 
-  ByteImageType::Pointer Amask;
+  ImageType::Pointer truthImg;
   {
     ReaderType::Pointer reader = ReaderType::New();
     reader->SetFileName(fn1);
     reader->Update();
-    Amask = reader->GetOutput();
+    truthImg = reader->GetOutput();
   }
 
-  ByteImageType::Pointer Bmask;
+  ImageType::Pointer testImg;
   {
     ReaderType::Pointer reader = ReaderType::New();
     reader->SetFileName(fn2);
     reader->Update();
-    Bmask = reader->GetOutput();
+    testImg = reader->GetOutput();
   }
-
-  typedef JaccardOverlapImageToImageMetric<ByteImageType, ByteImageType>
-    JaccardMetricType;
-  JaccardMetricType::Pointer diceMetric = JaccardMetricType::New();
-  diceMetric->SetFixedImage(Amask);
-  diceMetric->SetMovingImage(Bmask);
 
   std::ofstream outputfile;
   outputfile.open(outFile, std::ios::out);
-  outputfile << "Jaccard(A,B) = " <<  diceMetric->GetValue() << std::endl;
+
+  typedef JaccardOverlapImageToImageMetric<ImageType, ImageType>
+    JaccardMetricType;
+
+  typedef MultipleBinaryImageMetricsCalculator<ImageType, ImageType, JaccardMetricType>
+    JaccardCalculatorType;
+  JaccardCalculatorType::Pointer calc = JaccardCalculatorType::New();
+  calc->SetFixedImage(truthImg);
+  calc->SetMovingImage(testImg);
+  calc->Update();
+  for (unsigned int i = 0; i < calc->GetNumberOfValues(); i++)
+    outputfile << "Jaccard(" << "A_" << i+1 << ", B_" << i+1 << ") = " << calc->GetValue(i) << std::endl;
+
   outputfile.close();
 
   return 0;
@@ -62,7 +70,8 @@ main(int argc, char** argv)
 
   try
   {
-  validateImageJaccard(inputVolume1.c_str(), inputVolume2.c_str(), outputFile.c_str());
+    validateImageJaccard(
+      inputVolume1.c_str(), inputVolume2.c_str(), outputFile.c_str());
   } 
   catch (itk::ExceptionObject& e)
   {
