@@ -12,7 +12,7 @@ template <class TFixedImage, class TMovingImage>
 CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
 ::CohenKappaImageToImageMetric()
 {
-  m_IgnoreBackground = false;
+  m_IgnoreBackground = true;
 }
 
 template <class TFixedImage, class TMovingImage>
@@ -39,7 +39,7 @@ CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
 
   // Count number of labels from max value in both images
   // also count number of samples
-  unsigned int numLabels = 0;
+  unsigned int maxLabel = 0;
   unsigned int numSamples = 0;
 
   fixedIt.GoToBegin();
@@ -49,15 +49,15 @@ CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
     unsigned int r = (unsigned int)fixedIt.Get();
     unsigned int c = (unsigned int)movingIt.Get();
 
-    if (r > numLabels)
-        numLabels = r;
+    if (r > maxLabel)
+        maxLabel = r;
 
-    if (c > numLabels)
-      numLabels = c;
+    if (c > maxLabel)
+      maxLabel = c;
 
     if (m_IgnoreBackground)
     {
-      if (r != 0 && c != 0)
+      if (r != 0 || c != 0)
         numSamples++;
     }
     else
@@ -69,9 +69,10 @@ CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
     ++movingIt;
   }
 
-  unsigned int numClasses = numLabels;
-  if (!m_IgnoreBackground)
-    numClasses++;
+  unsigned int numClasses = maxLabel + 1;
+  //unsigned int numClasses = maxLabel;
+  //if (!m_IgnoreBackground)
+  //  numClasses++;
 
   // Fill in matrix that counts agreements/disagreements
   vnl_matrix<unsigned int> countMatrix(numClasses, numClasses, 0);
@@ -85,9 +86,10 @@ CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
 
     if (m_IgnoreBackground)
     {
-      if (r != 0 && c != 0)
+      if (r != 0 || c != 0)
       {
-        countMatrix(r-1, c-1) += 1;
+        //countMatrix(r-1, c-1) += 1;
+        countMatrix(r, c) += 1;
       }
     }
     else
