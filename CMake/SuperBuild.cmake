@@ -14,6 +14,28 @@ set( Covalic_DEPENDS "" )
 
 set( gen "${CMAKE_GENERATOR}" )
 
+set( proj VTK )
+ExternalProject_Add( ${proj}
+  GIT_REPOSITORY "${GIT_PROTOCOL}://vtk.org/VTK.git"
+  GIT_TAG "v5.10.1"
+  SOURCE_DIR "${CMAKE_BINARY_DIR}/VTK"
+  BINARY_DIR VTK-Build
+  CMAKE_GENERATOR ${gen}
+  CMAKE_ARGS
+  -Dgit_EXECUTABLE:FILEPATH=${GIT_EXECUTABLE}
+  -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
+  -DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
+  -DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_EXE_LINKER_FLAGS}
+  -DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_SHARED_LINKER_FLAGS}
+  -DCMAKE_BUILD_TYPE:STRING=${build_type}
+  -DBUILD_SHARED_LIBS:BOOL=${shared}
+  -DBUILD_EXAMPLES:BOOL=OFF
+  -DBUILD_TESTING:BOOL=OFF
+  INSTALL_COMMAND ""
+)
+
+set( VTK_DIR "${base}/VTK-Build" )
+
 ##
 ## Check if sytem ITK or superbuild ITK (or ITKv4)
 ##
@@ -173,7 +195,7 @@ ExternalProject_Add( ${proj}
     "ModuleDescriptionParser"
   )
 set( GenerateCLP_DIR "${base}/GenerateCLP-Build" )
-set( Covalic_DEPENDS ${Covalic_DEPENDS} "GenerateCLP" )
+set( Covalic_DEPENDS ${Covalic_DEPENDS} "GenerateCLP" "VTK" )
 
 ##
 ## Covalic - Normal Build
@@ -202,6 +224,7 @@ ExternalProject_Add( ${proj}
     -DCovalic_USE_ITKV4:BOOL=${Covalic_USE_ITKV4}
     -DCovalic_EXECUTABLE_DIRS:BOOL=${Covalic_EXECUTABLE_DIRS}
     -DITK_DIR:PATH=${ITK_DIR}
+    -DVTK_DIR:PATH=${VTK_DIR}
     -DGenerateCLP_DIR:PATH=${GenerateCLP_DIR}
   INSTALL_COMMAND ""
   DEPENDS
@@ -235,9 +258,13 @@ ExternalProject_Add( ${proj}
     -DCovalic_USE_ITKV4:BOOL=${Covalic_USE_ITKV4}
     -DCovalic_EXECUTABLE_DIRS:BOOL=${Covalic_EXECUTABLE_DIRS}
     -DITK_DIR:PATH=${ITK_DIR}
+    -DVTK_DIR:PATH=${VTK_DIR}
     -DGenerateCLP_DIR:PATH=${GenerateCLP_DIR}
   INSTALL_COMMAND ""
   DEPENDS
     ${Covalic_DEPENDS}
  )
 endif( NOT Covalic_USE_ITKV4 )
+
+
+
