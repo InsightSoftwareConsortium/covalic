@@ -155,7 +155,7 @@ RandomDilateImageFilter< TInputImage, TOutputImage>
       {
         double u = rand() / (double)RAND_MAX;
 
-        if (u > 0.05)
+        if (u > 0.02)
           it.Set(0);
         else
           it.Set(1);

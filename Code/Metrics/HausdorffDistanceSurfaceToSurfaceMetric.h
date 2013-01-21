@@ -30,6 +30,8 @@ public:
   typedef Superclass::ParametersType ParametersType;
   typedef Superclass::DerivativeType DerivativeType;
 
+  void SetPercentile(double p);
+
   virtual void SetFixedSurface(vtkPolyData* pd);
   virtual void SetMovingSurface(vtkPolyData* pd);
 
@@ -43,8 +45,13 @@ public:
 
 protected:
 
+  HausdorffDistanceSurfaceToSurfaceMetric() { m_Percentile = 0.95; }
+  ~HausdorffDistanceSurfaceToSurfaceMetric() { }
+
   vtkSmartPointer<vtkKdTreePointLocator> m_FixedPointLocator;
   vtkSmartPointer<vtkKdTreePointLocator> m_MovingPointLocator;
+
+  double m_Percentile;
 
 };
 

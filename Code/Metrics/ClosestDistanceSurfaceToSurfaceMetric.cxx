@@ -3,6 +3,8 @@
 
 #include <cmath>
 
+#include "vnl/vnl_math.h"
+
 void
 ClosestDistanceSurfaceToSurfaceMetric
 ::SetFixedSurface(vtkPolyData* pd)
@@ -23,7 +25,12 @@ ClosestDistanceSurfaceToSurfaceMetric
   vtkPoints* movingPts = this->GetMovingSurface()->GetPoints();
 
   if (movingPts->GetNumberOfPoints() == 0)
-    return 0;
+  {
+    if (fixedPts->GetNumberOfPoints() == 0)
+      return 0;
+    else
+      return vnl_huge_val(1.0);
+  }
 
   double sumDist = 0;
   for (vtkIdType i = 0; i < movingPts->GetNumberOfPoints(); i++)

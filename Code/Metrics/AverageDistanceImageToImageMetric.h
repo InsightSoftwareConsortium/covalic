@@ -47,6 +47,8 @@ public:
   typedef typename Superclass::DerivativeType DerivativeType;
 
   typedef typename TFixedImage::Pointer FixedImagePointer;
+  typedef typename TFixedImage::IndexType FixedImageIndexType;
+  typedef typename TFixedImage::PixelType FixedImagePixelType;
   typedef typename TFixedImage::PointType FixedImagePointType;
   typedef typename TFixedImage::SizeType FixedImageSizeType;
   typedef typename TFixedImage::SpacingType FixedImageSpacingType;
@@ -71,7 +73,7 @@ protected:
   AverageDistanceImageToImageMetric();
   ~AverageDistanceImageToImageMetric();
 
-  double Compute3DNonSymmetricDistance(const FixedImageType*, const MovingImageType*) const;
+  double ComputeNonSymmetricDistance(const FixedImageType*, const MovingImageType*) const;
 
 private:
 

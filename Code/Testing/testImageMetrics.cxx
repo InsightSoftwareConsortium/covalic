@@ -5,6 +5,7 @@
 #include "CohenKappaImageToImageMetric.h"
 
 #include "AverageDistanceImageToImageMetric.h"
+#include "HausdorffDistanceImageToImageMetric.h"
 
 #include "itkImage.h"
 #include "itkImageRegionIteratorWithIndex.h"
@@ -91,12 +92,20 @@ testMetrics()
   std::cout << "Kappa(A,B) = " << kappaMetric->GetValue() << std::endl;
 
   typedef AverageDistanceImageToImageMetric<ByteImageType, ByteImageType>
-    DistanceMetricType;
-  DistanceMetricType::Pointer distMetric = DistanceMetricType::New();
-  distMetric->SetFixedImage(Amask);
-  distMetric->SetMovingImage(Bmask);
+    AveDistanceMetricType;
+  AveDistanceMetricType::Pointer aveDistMetric = AveDistanceMetricType::New();
+  aveDistMetric->SetFixedImage(Amask);
+  aveDistMetric->SetMovingImage(Bmask);
 
-  std::cout << "Dist(A,B) = " << distMetric->GetValue() << std::endl;
+  std::cout << "AveDist(A,B) = " << aveDistMetric->GetValue() << std::endl;
+
+  typedef HausdorffDistanceImageToImageMetric<ByteImageType, ByteImageType>
+    HausdorffDistanceMetricType;
+  HausdorffDistanceMetricType::Pointer hDistMetric = HausdorffDistanceMetricType::New();
+  hDistMetric->SetFixedImage(Amask);
+  hDistMetric->SetMovingImage(Bmask);
+
+  std::cout << "HausdorffDist(A,B) = " << hDistMetric->GetValue() << std::endl;
 
   return 0;
 

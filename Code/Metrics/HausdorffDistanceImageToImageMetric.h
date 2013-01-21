@@ -47,9 +47,13 @@ public:
   typedef typename Superclass::DerivativeType DerivativeType;
 
   typedef typename TFixedImage::Pointer FixedImagePointer;
+  typedef typename TFixedImage::IndexType FixedImageIndexType;
+  typedef typename TFixedImage::PixelType FixedImagePixelType;
   typedef typename TFixedImage::PointType FixedImagePointType;
   typedef typename TFixedImage::SizeType FixedImageSizeType;
   typedef typename TFixedImage::SpacingType FixedImageSpacingType;
+
+  void SetPercentile(double p);
 
   MeasureType GetValue() const;
 
@@ -71,11 +75,13 @@ protected:
   HausdorffDistanceImageToImageMetric();
   ~HausdorffDistanceImageToImageMetric();
 
-  double Compute3DMaxDistance(const FixedImageType*, const MovingImageType*) const;
+  double ComputeMaxDistance(const FixedImageType*, const MovingImageType*) const;
 
 private:
 
   bool m_DoBlurring;
+
+  double m_Percentile;
 
 };
 

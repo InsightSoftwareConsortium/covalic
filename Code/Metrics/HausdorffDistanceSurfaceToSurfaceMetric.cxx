@@ -1,7 +1,11 @@
 
 #include "HausdorffDistanceSurfaceToSurfaceMetric.h"
 
+#include <algorithm>
 #include <cmath>
+#include <vector>
+
+#include "vnl/vnl_math.h"
 
 void
 HausdorffDistanceSurfaceToSurfaceMetric
@@ -25,6 +29,16 @@ HausdorffDistanceSurfaceToSurfaceMetric
   m_MovingPointLocator->BuildLocator();
 }
 
+void
+HausdorffDistanceSurfaceToSurfaceMetric
+::SetPercentile(double p)
+{
+  if (p < 0.0 || p > 1.0)
+    itkExceptionMacro("Percentile needs to be in [0,1]");
+
+  m_Percentile = p;
+}
+
 HausdorffDistanceSurfaceToSurfaceMetric::MeasureType
 HausdorffDistanceSurfaceToSurfaceMetric
 ::GetValue() const
@@ -33,10 +47,15 @@ HausdorffDistanceSurfaceToSurfaceMetric
 
   vtkPoints* movingPts = this->GetMovingSurface()->GetPoints();
 
-  if (movingPts->GetNumberOfPoints() == 0)
-    return 0;
+  if (movingPts->GetNumberOfPoints() == 0 || fixedPts->GetNumberOfPoints() == 0)
+  {
+    if (movingPts->GetNumberOfPoints() == fixedPts->GetNumberOfPoints())
+      return 0;
+    else
+      return vnl_huge_val(1.0);
+  }
 
-  double maxDist1 = 0;
+  std::vector<double> distances1;
   for (vtkIdType i = 0; i < movingPts->GetNumberOfPoints(); i++)
   {
     double x[3];
@@ -55,11 +74,10 @@ HausdorffDistanceSurfaceToSurfaceMetric
     }
     dist_i = sqrt(dist_i);
 
-    if (dist_i > maxDist1)
-      maxDist1 = dist_i;
+    distances1.push_back(dist_i);
   }
 
-  double maxDist2 = 0;
+  std::vector<double> distances2;
   for (vtkIdType i = 0; i < fixedPts->GetNumberOfPoints(); i++)
   {
     double x[3];
@@ -78,11 +96,11 @@ HausdorffDistanceSurfaceToSurfaceMetric
     }
     dist_i = sqrt(dist_i);
 
-    if (dist_i > maxDist2)
-      maxDist2 = dist_i;
+    distances2.push_back(dist_i);
   }
 
-  double H = (maxDist1 > maxDist2) ? maxDist1 : maxDist2;
+  double H1 = distances1[(int)(m_Percentile*(distances1.size()-1))];
+  double H2 = distances2[(int)(m_Percentile*(distances2.size()-1))];
 
-  return H;
+  return (H1 > H2) ? H1 : H2;
 };

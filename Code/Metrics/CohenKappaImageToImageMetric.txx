@@ -107,19 +107,41 @@ CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
     sumAgreements += countMatrix(k, k);
 
   double sumEF = 0;
-  for (unsigned int k = 0; k < numClasses; k++)
+  if (m_IgnoreBackground)
   {
-    unsigned int firstCount = 0;
-    for (unsigned int j = 0; j < numClasses; j++)
-      firstCount += countMatrix(k, j);
+    for (unsigned int k = 1; k < numClasses; k++)
+    {
+      unsigned int firstCount = 0;
+      for (unsigned int j = 1; j < numClasses; j++)
+        firstCount += countMatrix(k, j);
 
-    unsigned int secondCount = 0;
-    for (unsigned int j = 0; j < numClasses; j++)
-      secondCount += countMatrix(j, k);
+      unsigned int secondCount = 0;
+      for (unsigned int j = 1; j < numClasses; j++)
+        secondCount += countMatrix(j, k);
 
-    sumEF += firstCount*secondCount;
+      sumEF += firstCount*secondCount;
+    }
+  }
+  else
+  {
+    for (unsigned int k = 0; k < numClasses; k++)
+    {
+      unsigned int firstCount = 0;
+      for (unsigned int j = 0; j < numClasses; j++)
+        firstCount += countMatrix(k, j);
+
+      unsigned int secondCount = 0;
+      for (unsigned int j = 0; j < numClasses; j++)
+        secondCount += countMatrix(j, k);
+
+      sumEF += firstCount*secondCount;
+    }
   }
   sumEF /= numSamples;
+
+std::cout << "numSamples = " << numSamples << std::endl;
+std::cout << "sumAgreements = " << sumAgreements << std::endl;
+std::cout << "sumEF = " << sumEF << std::endl;
 
   return (sumAgreements - sumEF) / (numSamples - sumEF);
 }

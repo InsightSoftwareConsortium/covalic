@@ -6,25 +6,19 @@
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkLinearInterpolateImageFunction.h"
-//#include "itkSignedDanielssonDistanceMapImageFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
 
-#include "itkVTKImageExport.h"
-
-#include "vtkContourFilter.h"
-#include "vtkIdList.h"
-#include "vtkImageData.h"
-#include "vtkImageImport.h"
-#include "vtkPointData.h"
-#include "vtkPolyData.h"
-#include "vtkSmartPointer.h"
-#include "vtkTriangleFilter.h"
+#include "itkBinaryBallStructuringElement.h"
+#include "itkBinaryDilateImageFilter.h"
+#include "itkBinaryErodeImageFilter.h"
 
 #include "vnl/vnl_math.h"
 
 #include "HausdorffDistanceImageToImageMetric.h"
 
+#include <algorithm>
 #include <cmath>
+#include <vector>
 
 
 template <class TFixedImage, class TMovingImage>
@@ -32,6 +26,8 @@ HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
 ::HausdorffDistanceImageToImageMetric()
 {
   m_DoBlurring = false;
+
+  m_Percentile = 0.95;
 }
 
 template <class TFixedImage, class TMovingImage>
@@ -42,14 +38,24 @@ HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
 }
 
 template <class TFixedImage, class TMovingImage>
+void
+HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
+::SetPercentile(double p)
+{
+  if (p < 0.0 || p > 1.0)
+    itkExceptionMacro(<< "Percentile needs to be in [0, 1]");
+
+  m_Percentile = p;
+}
+
+template <class TFixedImage, class TMovingImage>
 double
 HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
-::Compute3DMaxDistance(
+::ComputeMaxDistance(
   const TFixedImage* img1, const TMovingImage* img2) const
 {
   typedef itk::Image<float, FixedImageType::ImageDimension> FloatImageType;
 
-  //typedef itk::SignedDanielssonDistanceMapImageFilter<
   typedef itk::SignedMaurerDistanceMapImageFilter<
     FixedImageType, FloatImageType> DistanceMapFilterType;
 
@@ -71,7 +77,6 @@ HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
 
     if (!m_DoBlurring)
     {
-      //distMap2 = distanceMapFilter->GetDistanceMap();
       distMap2 = distanceMapFilter->GetOutput();
     }
     else
@@ -84,9 +89,8 @@ HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
           minSpacing = spacing[dim];
 
       typename BlurFilterType::Pointer blurf = BlurFilterType::New();
-      //blurf->SetInput(distanceMapFilter->GetDistanceMap());
       blurf->SetInput(distanceMapFilter->GetOutput());
-      blurf->SetVariance(0.5 * minSpacing);
+      blurf->SetVariance(1.5 * minSpacing);
       blurf->Update();
 
       distMap2 = blurf->GetOutput();
@@ -100,12 +104,26 @@ HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
   distInterp2->SetInputImage(distMap2);
   distInterp2->SetSplineOrder(3);
 
-  // Do contour detection
-  typename FloatImageType::Pointer contourMask = FloatImageType::New();
-  contourMask->CopyInformation(img1);
-  contourMask->SetRegions(img1->GetLargestPossibleRegion());
-  contourMask->Allocate();
-  contourMask->FillBuffer(0);
+  // Detect boundary via erosion
+  typedef itk::BinaryBallStructuringElement<FixedImagePixelType, TFixedImage::ImageDimension>
+    StructElementType;
+  typedef
+    itk::BinaryErodeImageFilter<FixedImageType, FixedImageType,
+      StructElementType> ErodeType;
+
+  StructElementType structel;
+  structel.SetRadius(1);
+  structel.CreateStructuringElement();
+
+  typename ErodeType::Pointer erode = ErodeType::New();
+  erode->SetErodeValue(1);
+  erode->SetInput(img1);
+  erode->SetKernel(structel);
+  erode->Update();
+
+  FixedImagePointer erodedImg1 = erode->GetOutput();
+
+  std::vector<double> distances;
 
   typedef itk::ImageRegionConstIteratorWithIndex<FixedImageType>
     FixedIteratorType;
@@ -116,142 +134,26 @@ HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
     if (it1.Get() == 0)
       continue;
 
-    contourMask->SetPixel(it1.GetIndex(), 1.0);
-  }
+    FixedImageIndexType ind = it1.GetIndex();
 
-  typedef itk::VTKImageExport<FloatImageType> ITKExportType;
-  typename ITKExportType::Pointer itkexport = ITKExportType::New();
-  itkexport->SetInput(contourMask);
-  itkexport->Update();
+    if (erodedImg1->GetPixel(ind) != 0)
+      continue;
 
-  // See InsightApplications/Auxialiary/vtk/itkImageToVTKImageFilter
-  vtkSmartPointer<vtkImageImport> vtkimport =
-    vtkSmartPointer<vtkImageImport>::New();
-  vtkimport->SetUpdateInformationCallback(
-    itkexport->GetUpdateInformationCallback());
-  vtkimport->SetPipelineModifiedCallback(
-    itkexport->GetPipelineModifiedCallback());
-  vtkimport->SetWholeExtentCallback(itkexport->GetWholeExtentCallback());
-  vtkimport->SetSpacingCallback(itkexport->GetSpacingCallback());
-  vtkimport->SetOriginCallback(itkexport->GetOriginCallback());
-  vtkimport->SetScalarTypeCallback(itkexport->GetScalarTypeCallback());
-  vtkimport->SetNumberOfComponentsCallback(itkexport->GetNumberOfComponentsCallback());
-  vtkimport->SetPropagateUpdateExtentCallback(itkexport->GetPropagateUpdateExtentCallback());
-  vtkimport->SetUpdateDataCallback(itkexport->GetUpdateDataCallback());
-  vtkimport->SetDataExtentCallback(itkexport->GetDataExtentCallback());
-  vtkimport->SetBufferPointerCallback(itkexport->GetBufferPointerCallback());
-  vtkimport->SetCallbackUserData(itkexport->GetCallbackUserData());
-
-  vtkSmartPointer<vtkContourFilter> contourf =
-    vtkSmartPointer<vtkContourFilter>::New();
-  contourf->SetInput(vtkimport->GetOutput());
-  contourf->SetNumberOfContours(1);
-  contourf->SetValue(0, 1.0);
-  contourf->ComputeNormalsOff();
-  contourf->ComputeGradientsOff();
-
-  contourf->Update();
-
-  vtkSmartPointer<vtkTriangleFilter> trif = vtkSmartPointer<vtkTriangleFilter>::New();
-  trif->SetInput(contourf->GetOutput());
-  trif->PassVertsOff();
-  trif->PassLinesOff();
-  trif->Update();
-
-  vtkSmartPointer<vtkPolyData> boundaryPD = trif->GetOutput();
-
-  boundaryPD->BuildLinks();
-
-  if (boundaryPD->GetNumberOfCells() == 0)
-  {
-    itkExceptionMacro(<< "No boundary points detected");
-    return 0.0;
-  }
-
-  double maxD = 0;
-
-#if 0
-  for (vtkIdType k = 0; k < boundaryPD->GetNumberOfCells(); k++)
-  {
-    // Compute centroid
-    double c[3];
-    for (int d = 0; d < 3; d++)
-      c[d] = 0;
-
-    vtkIdType nPts = 0;
-    vtkIdType* ptIds = 0;
-    boundaryPD->GetCellPoints(k, nPts, ptIds);
-
-    if (nPts != 3)
-      itkExceptionMacro(<< "Non triangle cell detected: " << nPts);
-
-
-    double x0[3];
-    boundaryPD->GetPoint(ptIds[0], x0);
-    double x1[3];
-    boundaryPD->GetPoint(ptIds[1], x1);
-    double x2[3];
-    boundaryPD->GetPoint(ptIds[2], x2);
-
-    for (int d = 0; d < 3; d++)
-    {
-      c[d] += (x0[d] + x1[d] + x2[d]) / 3.0;
-    }
-
-    for (int d = 0; d < 3; d++)
-    {
-      x1[d] = x1[d] - x0[d];
-      x2[d] = x2[d] - x0[d];
-    }
-
-    // Compute area
-    double crossp[3];
-    crossp[0] = (x1[1] * x2[2] - x1[2] * x2[1]) / 2.0;
-    crossp[1] = (x1[2] * x2[0] - x1[0] * x2[2]) / 2.0;
-    crossp[2] = (x1[0] * x2[1] - x1[1] * x2[0]) / 2.0;
-
-    // Compute distance
-    typename FloatImageType::PointType p;
-    p[0] = c[0];
-    p[1] = c[1];
-    p[2] = c[2];
+     FixedImagePointType p;
+     img1->TransformIndexToPhysicalPoint(ind, p);
 
     if (!distInterp2->IsInsideBuffer(p))
-    {
       continue;
-    }
 
-    double d = fabs(distInterp2->Evaluate(p));
-
-    if (d > maxD)
-      maxD = d;
-  }
-#else
-  for (vtkIdType k = 0; k < boundaryPD->GetNumberOfPoints(); k++)
-  {
-    double x[3];
-    boundaryPD->GetPoint(k, x);
-
-    // Compute distance
-    typename FloatImageType::PointType p;
-    p[0] = x[0];
-    p[1] = x[1];
-    p[2] = x[2];
-
-    if (!distInterp2->IsInsideBuffer(p))
-    {
-      continue;
-    }
-
-    double d = fabs(distInterp2->Evaluate(p));
-
-    if (d > maxD)
-      maxD = d;
+    distances.push_back(vnl_math_abs(distInterp2->Evaluate(p)));
   }
 
-#endif
+  if (distances.size() == 0)
+    return vnl_huge_val(1.0);
 
-  return maxD;
+  std::sort(distances.begin(), distances.end());
+
+  return distances[(int)(m_Percentile*(distances.size() - 1))];
 }
 
 template <class TFixedImage, class TMovingImage>
@@ -262,28 +164,38 @@ HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
   if (Superclass::m_FixedImage.IsNull() || Superclass::m_MovingImage.IsNull())
     itkExceptionMacro(<< "Need two input classification images");
 
-  // TODO:
-  // if (ImageDimension == 2) marching squares
-  // else if (ImageDimension == 3) marching cubes
-  // else do generic boundary detection
+  // Handle special case where inputs are zeros
+  typedef itk::ImageRegionConstIteratorWithIndex<FixedImageType>
+    FixedIteratorType;
+  FixedIteratorType it(Superclass::m_FixedImage, Superclass::m_FixedImage->GetLargestPossibleRegion());
 
-  unsigned int dim = FixedImageType::GetImageDimension();
-
-  if (dim == 3)
+  double sumFixed = 0;
+  double sumMoving = 0;
+  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
   {
-    double d12 = this->Compute3DMaxDistance(
-      Superclass::m_FixedImage, Superclass::m_MovingImage);
-    double d21 = this->Compute3DMaxDistance(
-      Superclass::m_MovingImage, Superclass::m_FixedImage);
-    if (d12 > d21)
-      return d12;
-    else
-      return d21;
+    sumFixed += it.Get();
+    sumMoving += Superclass::m_MovingImage->GetPixel(it.GetIndex());
   }
 
-  itkExceptionMacro(<< "Not implemented");
+  if (sumFixed == 0 || sumMoving == 0)
+  {
+    if (sumFixed == sumMoving)
+      return 0.0;
+    else
+      return vnl_huge_val(1.0);
+  }
 
-  return 0;
+  // Compute max distances at specified percentile
+  double d12 = this->ComputeMaxDistance(
+    Superclass::m_FixedImage, Superclass::m_MovingImage);
+  double d21 = this->ComputeMaxDistance(
+    Superclass::m_MovingImage, Superclass::m_FixedImage);
+
+  if (d12 > d21)
+    return d12;
+  else
+    return d21;
+
 }
 
 #endif

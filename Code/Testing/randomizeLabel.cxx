@@ -17,6 +17,9 @@
 #include <iostream>
 #include <string>
 
+#include <cstdlib>
+#include <ctime>
+
 
 int
 randomizeLabels(int argc, char** argv)
@@ -26,6 +29,8 @@ randomizeLabels(int argc, char** argv)
     std::cerr << "Usage: " << argv[0] << " in.mha out.mha" << std::endl;
     return -1;
   }
+
+  srand(time(NULL));
 
   itk::OutputWindow::SetInstance(itk::TextOutput::New());
 
