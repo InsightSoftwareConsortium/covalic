@@ -9,8 +9,7 @@
 #include "itkSignedMaurerDistanceMapImageFilter.h"
 
 #include "itkBinaryBallStructuringElement.h"
-#include "itkBinaryDilateImageFilter.h"
-#include "itkBinaryErodeImageFilter.h"
+#include "itkMorphologicalGradientImageFilter.h"
 
 #include "vnl/vnl_math.h"
 
@@ -104,40 +103,36 @@ HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
   distInterp2->SetInputImage(distMap2);
   distInterp2->SetSplineOrder(3);
 
-  // Detect boundary via erosion
+  // Detect boundary via morphological gradient
   typedef itk::BinaryBallStructuringElement<FixedImagePixelType, TFixedImage::ImageDimension>
     StructElementType;
   typedef
-    itk::BinaryErodeImageFilter<FixedImageType, FixedImageType,
-      StructElementType> ErodeType;
+    itk::MorphologicalGradientImageFilter<FixedImageType, FixedImageType,
+      StructElementType> EdgeFilterType;
 
   StructElementType structel;
   structel.SetRadius(1);
   structel.CreateStructuringElement();
 
-  typename ErodeType::Pointer erode = ErodeType::New();
-  erode->SetErodeValue(1);
-  erode->SetInput(img1);
-  erode->SetKernel(structel);
-  erode->Update();
+  typename EdgeFilterType::Pointer edgef = EdgeFilterType::New();
+  edgef->SetInput(img1);
+  edgef->SetKernel(structel);
+  edgef->Update();
 
-  FixedImagePointer erodedImg1 = erode->GetOutput();
+  FixedImagePointer edgeImg1 = edgef->GetOutput();
 
   std::vector<double> distances;
 
   typedef itk::ImageRegionConstIteratorWithIndex<FixedImageType>
     FixedIteratorType;
-  FixedIteratorType it1(img1, img1->GetLargestPossibleRegion());
+  FixedIteratorType it(edgeImg1, edgeImg1->GetLargestPossibleRegion());
 
-  for (it1.GoToBegin(); !it1.IsAtEnd(); ++it1)
+  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
   {
-    if (it1.Get() == 0)
+    if (it.Get() == 0)
       continue;
 
-    FixedImageIndexType ind = it1.GetIndex();
-
-    if (erodedImg1->GetPixel(ind) != 0)
-      continue;
+    FixedImageIndexType ind = it.GetIndex();
 
      FixedImagePointType p;
      img1->TransformIndexToPhysicalPoint(ind, p);

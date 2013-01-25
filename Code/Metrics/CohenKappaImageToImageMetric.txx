@@ -12,7 +12,7 @@ template <class TFixedImage, class TMovingImage>
 CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
 ::CohenKappaImageToImageMetric()
 {
-  m_IgnoreBackground = true;
+  m_IgnoreBackground = false;
 }
 
 template <class TFixedImage, class TMovingImage>
@@ -138,10 +138,6 @@ CohenKappaImageToImageMetric<TFixedImage, TMovingImage>
     }
   }
   sumEF /= numSamples;
-
-std::cout << "numSamples = " << numSamples << std::endl;
-std::cout << "sumAgreements = " << sumAgreements << std::endl;
-std::cout << "sumEF = " << sumEF << std::endl;
 
   return (sumAgreements - sumEF) / (numSamples - sumEF);
 }

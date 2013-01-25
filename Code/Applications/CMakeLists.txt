@@ -33,6 +33,7 @@ include_directories(
 # Metrics for binary images. Given label image, generates multiple outputs for each label
 add_subdirectory(ValidateImageDice)
 add_subdirectory(ValidateImageJaccard)
+add_subdirectory(ValidateImagePPV)
 add_subdirectory(ValidateImageSensitivity)
 add_subdirectory(ValidateImageSpecificity)
 add_subdirectory(ValidateImageAveDist)

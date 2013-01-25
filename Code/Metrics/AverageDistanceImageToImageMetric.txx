@@ -9,8 +9,7 @@
 #include "itkSignedMaurerDistanceMapImageFilter.h"
 
 #include "itkBinaryBallStructuringElement.h"
-#include "itkBinaryDilateImageFilter.h"
-#include "itkBinaryErodeImageFilter.h"
+#include "itkMorphologicalGradientImageFilter.h"
 
 #include "vnl/vnl_math.h"
 
@@ -87,44 +86,40 @@ AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
   distInterp2->SetInputImage(distMap2);
   distInterp2->SetSplineOrder(3);
 
-  // Detect boundary via erosion
+  // Detect boundary via morphological gradient
   typedef itk::BinaryBallStructuringElement<FixedImagePixelType, TFixedImage::ImageDimension>
     StructElementType;
   typedef
-    itk::BinaryErodeImageFilter<FixedImageType, FixedImageType,
-      StructElementType> ErodeType;
+    itk::MorphologicalGradientImageFilter<FixedImageType, FixedImageType,
+      StructElementType> EdgeFilterType;
 
   StructElementType structel;
   structel.SetRadius(1);
   structel.CreateStructuringElement();
 
-  typename ErodeType::Pointer erode = ErodeType::New();
-  erode->SetErodeValue(1);
-  erode->SetInput(img1);
-  erode->SetKernel(structel);
-  erode->Update();
+  typename EdgeFilterType::Pointer edgef = EdgeFilterType::New();
+  edgef->SetInput(img1);
+  edgef->SetKernel(structel);
+  edgef->Update();
 
-  FixedImagePointer erodedImg1 = erode->GetOutput();
+  FixedImagePointer edgeImg1 = edgef->GetOutput();
 
   double sumD = 0;
   double numV = 0;
 
   typedef itk::ImageRegionConstIteratorWithIndex<FixedImageType>
     FixedIteratorType;
-  FixedIteratorType it1(img1, img1->GetLargestPossibleRegion());
+  FixedIteratorType it(edgeImg1, edgeImg1->GetLargestPossibleRegion());
 
-  for (it1.GoToBegin(); !it1.IsAtEnd(); ++it1)
+  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
   {
-    if (it1.Get() == 0)
+    if (it.Get() == 0)
       continue;
 
-    FixedImageIndexType ind = it1.GetIndex();
+    FixedImageIndexType ind = it.GetIndex();
 
-    if (erodedImg1->GetPixel(ind) != 0)
-      continue;
-
-     FixedImagePointType p;
-     img1->TransformIndexToPhysicalPoint(ind, p);
+    FixedImagePointType p;
+    img1->TransformIndexToPhysicalPoint(ind, p);
 
     if (!distInterp2->IsInsideBuffer(p))
       continue;
@@ -132,6 +127,10 @@ AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
     sumD += vnl_math_abs(distInterp2->Evaluate(p));
     numV += 1.0;
   }
+
+  if (numV == 0)
+    return vnl_huge_val(1.0);
+
 
   return sumD / numV;
 
@@ -168,8 +167,16 @@ AverageDistanceImageToImageMetric<TFixedImage, TMovingImage>
 
   double d12 = this->ComputeNonSymmetricDistance(
     Superclass::m_FixedImage, Superclass::m_MovingImage);
+
+  if (vnl_math_isinf(d12))
+    return vnl_huge_val(1.0);
+
   double d21 = this->ComputeNonSymmetricDistance(
     Superclass::m_MovingImage, Superclass::m_FixedImage);
+
+  if (vnl_math_isinf(d21))
+    return vnl_huge_val(1.0);
+
   return 0.5 * (d12 + d21);
 
 }

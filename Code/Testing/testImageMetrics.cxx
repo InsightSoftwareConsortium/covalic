@@ -2,6 +2,10 @@
 #include "DiceOverlapImageToImageMetric.h"
 #include "JaccardOverlapImageToImageMetric.h"
 
+#include "SensitivityImageToImageMetric.h"
+#include "SpecificityImageToImageMetric.h"
+#include "PositivePredictiveValueImageToImageMetric.h"
+
 #include "CohenKappaImageToImageMetric.h"
 
 #include "AverageDistanceImageToImageMetric.h"
@@ -41,6 +45,11 @@ testMetrics()
   Bmask->SetRegions(region);
   Bmask->Allocate();
   Bmask->FillBuffer(0);
+
+  ByteImageType::Pointer Zmask = ByteImageType::New();
+  Zmask->SetRegions(region);
+  Zmask->Allocate();
+  Zmask->FillBuffer(0);
 
   ByteImageType::IndexType ind;
   for (ind[2] = 0; ind[2] < (long)size[2]; ind[2]++)
@@ -83,6 +92,30 @@ testMetrics()
 
   std::cout << "Jaccard(A,B) = " <<  jaccMetric->GetValue() << std::endl;
 
+  typedef SensitivityImageToImageMetric<ByteImageType, ByteImageType>
+    SensitivityMetricType;
+  SensitivityMetricType::Pointer sensMetric = SensitivityMetricType::New();
+  sensMetric->SetFixedImage(Amask);
+  sensMetric->SetMovingImage(Bmask);
+
+  std::cout << "Sensitivity(A,B) = " <<  sensMetric->GetValue() << std::endl;
+
+  typedef SpecificityImageToImageMetric<ByteImageType, ByteImageType>
+    SpecificityMetricType;
+  SpecificityMetricType::Pointer specMetric = SpecificityMetricType::New();
+  specMetric->SetFixedImage(Amask);
+  specMetric->SetMovingImage(Bmask);
+
+  std::cout << "Specificity(A,B) = " <<  specMetric->GetValue() << std::endl;
+
+  typedef PositivePredictiveValueImageToImageMetric<ByteImageType, ByteImageType>
+    PositivePredictiveValueMetricType;
+  PositivePredictiveValueMetricType::Pointer precMetric = PositivePredictiveValueMetricType::New();
+  precMetric->SetFixedImage(Amask);
+  precMetric->SetMovingImage(Bmask);
+
+  std::cout << "PositivePredictiveValue(A,B) = " <<  precMetric->GetValue() << std::endl;
+
   typedef CohenKappaImageToImageMetric<ByteImageType, ByteImageType>
     KappaMetricType;
   KappaMetricType::Pointer kappaMetric = KappaMetricType::New();
@@ -94,18 +127,34 @@ testMetrics()
   typedef AverageDistanceImageToImageMetric<ByteImageType, ByteImageType>
     AveDistanceMetricType;
   AveDistanceMetricType::Pointer aveDistMetric = AveDistanceMetricType::New();
+
   aveDistMetric->SetFixedImage(Amask);
   aveDistMetric->SetMovingImage(Bmask);
-
   std::cout << "AveDist(A,B) = " << aveDistMetric->GetValue() << std::endl;
+
+  aveDistMetric->SetFixedImage(Amask);
+  aveDistMetric->SetMovingImage(Amask);
+  std::cout << "AveDist(A,A) = " << aveDistMetric->GetValue() << std::endl;
+
+  aveDistMetric->SetFixedImage(Amask);
+  aveDistMetric->SetMovingImage(Zmask);
+  std::cout << "AveDist(A,Z) = " << aveDistMetric->GetValue() << std::endl;
 
   typedef HausdorffDistanceImageToImageMetric<ByteImageType, ByteImageType>
     HausdorffDistanceMetricType;
   HausdorffDistanceMetricType::Pointer hDistMetric = HausdorffDistanceMetricType::New();
+
   hDistMetric->SetFixedImage(Amask);
   hDistMetric->SetMovingImage(Bmask);
-
   std::cout << "HausdorffDist(A,B) = " << hDistMetric->GetValue() << std::endl;
+
+  hDistMetric->SetFixedImage(Amask);
+  hDistMetric->SetMovingImage(Amask);
+  std::cout << "HausdorffDist(A,A) = " << hDistMetric->GetValue() << std::endl;
+
+  hDistMetric->SetFixedImage(Amask);
+  hDistMetric->SetMovingImage(Zmask);
+  std::cout << "HausdorffDist(A,Z) = " << hDistMetric->GetValue() << std::endl;
 
   return 0;
 

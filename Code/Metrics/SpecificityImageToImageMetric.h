@@ -1,5 +1,5 @@
 
-// Specificity metric
+// Measures specificity or true negative rate
 // Input: binary images, where fixed image denotes truth
 // #true negatives / (#true negatives + #false positives)
 

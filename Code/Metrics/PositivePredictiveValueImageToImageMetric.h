@@ -1,10 +1,10 @@
 
-// Measures sensitivity or true positive rate
+// Measures positive predictive value (PPV) or precision
 // Input: binary images, where fixed image denotes truth
 // #true positives / (#true positives + #false negatives)
 
-#ifndef _SensitivityImageToImageMetric_h
-#define _SensitivityImageToImageMetric_h
+#ifndef _PositivePredictiveValueImageToImageMetric_h
+#define _PositivePredictiveValueImageToImageMetric_h
 
 #include "AbstractValidationMetric.h"
 
@@ -12,7 +12,7 @@
 #include "itkSmartPointer.h"
 
 template <class TFixedImage, class TMovingImage>
-class ITK_EXPORT SensitivityImageToImageMetric :
+class ITK_EXPORT PositivePredictiveValueImageToImageMetric :
   public itk::ImageToImageMetric<TFixedImage, TMovingImage>, public AbstractValidationMetric
 {
 
@@ -25,7 +25,7 @@ public:
   double GetWorstScore() { return 0.0; }
 
   /** Standard class typedefs. */
-  typedef SensitivityImageToImageMetric           Self;
+  typedef PositivePredictiveValueImageToImageMetric           Self;
   typedef itk::ImageToImageMetric<TFixedImage, TMovingImage> Superclass;
   typedef itk::SmartPointer<Self>                            Pointer;
   typedef itk::SmartPointer<const Self>                      ConstPointer;
@@ -37,7 +37,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(SensitivityImageToImageMetric,
+  itkTypeMacro(PositivePredictiveValueImageToImageMetric,
     itk::ImageToImageMetric);
 
   typedef typename Superclass::MeasureType MeasureType;
@@ -59,15 +59,15 @@ public:
 
 protected:
 
-  SensitivityImageToImageMetric();
-  virtual ~SensitivityImageToImageMetric();
+  PositivePredictiveValueImageToImageMetric();
+  virtual ~PositivePredictiveValueImageToImageMetric();
 
 // TODO: transform member, default to identity
 
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "SensitivityImageToImageMetric.txx"
+#include "PositivePredictiveValueImageToImageMetric.txx"
 #endif
 
 #endif

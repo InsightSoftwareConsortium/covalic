@@ -3,6 +3,7 @@
 #include "JaccardOverlapImageToImageMetric.h"
 #include "SensitivityImageToImageMetric.h"
 #include "SpecificityImageToImageMetric.h"
+#include "PositivePredictiveValueImageToImageMetric.h"
 
 #include "MultipleBinaryImageMetricsCalculator.h"
 
@@ -48,6 +49,8 @@ validateLabelImages(const char* fixedfn, const char* movingfn)
     SpecificityMetricType;
   typedef SensitivityImageToImageMetric<ImageType, ImageType>
     SensitivityMetricType;
+  typedef PositivePredictiveValueImageToImageMetric<ImageType, ImageType>
+    PPVMetricType;
   typedef AverageDistanceImageToImageMetric<ImageType, ImageType>
     AverageDistanceMetricType;
   typedef HausdorffDistanceImageToImageMetric<ImageType, ImageType>
@@ -103,6 +106,18 @@ validateLabelImages(const char* fixedfn, const char* movingfn)
     calc->Update();
     for (unsigned int i = 0; i < calc->GetNumberOfValues(); i++)
       std::cout << "Sensitivity(" << "A_" << i+1 << ", B_" << i+1 << ") = " << calc->GetValue(i) << std::endl;
+  }
+
+  std::cout << "\n===" << std::endl;
+  typedef MultipleBinaryImageMetricsCalculator<ImageType, ImageType, PPVMetricType>
+    PPVCalculatorType;
+  {
+    PPVCalculatorType::Pointer calc = PPVCalculatorType::New();
+    calc->SetFixedImage(fixedImage);
+    calc->SetMovingImage(movingImage);
+    calc->Update();
+    for (unsigned int i = 0; i < calc->GetNumberOfValues(); i++)
+      std::cout << "PPV(" << "A_" << i+1 << ", B_" << i+1 << ") = " << calc->GetValue(i) << std::endl;
   }
 
   std::cout << "\n===" << std::endl;
