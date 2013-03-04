@@ -129,10 +129,10 @@ HausdorffDistanceImageToImageMetric<TFixedImage, TMovingImage>
 
   for (it.GoToBegin(); !it.IsAtEnd(); ++it)
   {
-    if (it.Get() == 0)
-      continue;
-
     FixedImageIndexType ind = it.GetIndex();
+
+    if (it.Get() == 0 || img1->GetPixel(ind) == 0)
+      continue;
 
      FixedImagePointType p;
      img1->TransformIndexToPhysicalPoint(ind, p);

@@ -45,4 +45,9 @@ add_executable(validateLabelImages validateLabelImages.cxx)
 target_link_libraries(testImageMetrics ${ITK_LIBRARIES} ${VTK_LIBRARIES})
 target_link_libraries(testSurfMetrics ${ITK_LIBRARIES} ${VTK_LIBRARIES})
 target_link_libraries(randomizeLabel ${ITK_LIBRARIES})
-target_link_libraries(validateLabelImages ${ITK_LIBRARIES} ${VTK_LIBRARIES})
+target_link_libraries(validateLabelImages ${ITK_LIBRARIES}
+  vtkCommon
+  vtkGraphics
+  vtkIO
+  vtkFiltering
+)
