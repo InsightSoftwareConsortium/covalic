@@ -39,6 +39,9 @@ add_subdirectory(ValidateImageSpecificity)
 add_subdirectory(ValidateImageAveDist)
 add_subdirectory(ValidateImageHausdorffDist)
 
+# Initial Input Image Validation/debugging metric
+add_subdirectory(ValidateInputImage)
+
 # Metrics for label images
 add_subdirectory(ValidateImageKappa)
 
