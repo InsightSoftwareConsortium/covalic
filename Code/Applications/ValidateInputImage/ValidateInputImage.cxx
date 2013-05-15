@@ -48,16 +48,15 @@ validateInputImage(const char* fn1, const char* fn2, const char* outFile)
   typedef ImageToImageValidator<ImageType, ImageType>
     ImageValidatorType;
 
-  typedef MultipleBinaryImageMetricsCalculator<ImageType, ImageType, ImageValidatorType>
-    ImageValidatorCalculatorType;
-  ImageValidatorCalculatorType::Pointer calc = ImageValidatorCalculatorType::New();
-  calc->SetFixedImage(truthImg);
-  calc->SetMovingImage(testImg);
-  calc->Update();
-  for (unsigned int i = 0; i < calc->GetNumberOfValues(); i++)
-    outputfile << "Validator(" << "A_" << i+1 << ", B_" << i+1 << ") = " << calc->GetValue(i) << std::endl;
+  ImageValidatorType::Pointer checker = ImageValidatorType::New();
+  checker->SetFixedImage(truthImg);
+  checker->SetMovingImage(testImg);
 
+  outputfile << "DomainCheck(A, B) = " << checker->GetValue() << std::endl;
   outputfile.close();
+
+  if (checker->GetValue() != 0)
+    return -1;
 
   return 0;
 
