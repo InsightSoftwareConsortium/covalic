@@ -110,46 +110,23 @@ if( NOT USE_SYSTEM_ITK )
 endif( NOT USE_SYSTEM_ITK )
 
 ##
-## TCLAP
+## Slicer execution model
 ##
-set( proj tclap )
-ExternalProject_Add( ${proj}
-  SVN_REPOSITORY
-    "http://svn.slicer.org/Slicer3/trunk/Libs/SlicerExecutionModel/tclap"
-  SOURCE_DIR tclap
-  BINARY_DIR tclap-Build
-  CMAKE_GENERATOR ${gen}
-  CMAKE_ARGS
-    -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-    -DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
-    -DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_EXE_LINKER_FLAGS}
-    -DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_SHARED_LINKER_FLAGS}
-    -DCMAKE_BUILD_TYPE:STRING=${build_type}
-    -DBUILD_SHARED_LIBS:BOOL=${shared}
-    -DBUILD_EXAMPLES:BOOL=OFF
-    -DBUILD_TESTING:BOOL=OFF
-  INSTALL_COMMAND ""
-  )
-set( TCLAP_DIR "${base}/tclap-Build" )
 
-
-##
-## ModuleDescriptionParser
-##
-set( proj ModuleDescriptionParser )
+set( proj SlicerExecutionModel )
 
 if( NOT USE_SYSTEM_ITK )
   # Depends on ITK if ITK was build using superbuild
-  set( ModuleDescriptionParser_DEPENDS "Insight" )
+  set( SlicerExecutionModel_DEPENDS "Insight" )
 else( NOT USE_SYSTEM_ITK )
-  set( ModuleDescriptionParser_DEPENDS "" )
+  set( SlicerExecutionModel_DEPENDS "" )
 endif( NOT USE_SYSTEM_ITK )
 
+
 ExternalProject_Add( ${proj}
-  SVN_REPOSITORY
-    "http://svn.slicer.org/Slicer3/trunk/Libs/SlicerExecutionModel/ModuleDescriptionParser"
-  SOURCE_DIR ModuleDescriptionParser
-  BINARY_DIR ModuleDescriptionParser-Build
+  GIT_REPOSITORY "https://github.com/Slicer/SlicerExecutionModel"
+  SOURCE_DIR "${CMAKE_BINARY_DIR}/SlicerExecutionModel"
+  BINARY_DIR SlicerExecutionModel-Build
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
@@ -162,40 +139,14 @@ ExternalProject_Add( ${proj}
     -DBUILD_TESTING:BOOL=OFF
     -DITK_DIR:PATH=${ITK_DIR}
   INSTALL_COMMAND ""
-  DEPENDS ${ModuleDescriptionParser_DEPENDS}
+  DEPENDS ${SlicerExecutionModel_DEPENDS}
   )
-set( ModuleDescriptionParser_DIR "${base}/ModuleDescriptionParser-Build" )
 
+set( TCLAP_DIR "${base}/SlicerExecutionModel-Build/tclap" )
+set( ModuleDescriptionParser_DIR "${base}/SlicerExecutionModel-Build/ModuleDescriptionParser" )
+set( GenerateCLP_DIR "${base}/SlicerExecutionModel-Build/GenerateCLP" )
 
-##
-## GenerateCLP
-##
-set( proj GenerateCLP )
-ExternalProject_Add( ${proj}
-  SVN_REPOSITORY
-    "http://svn.slicer.org/Slicer3/trunk/Libs/SlicerExecutionModel/GenerateCLP"
-  SOURCE_DIR GenerateCLP
-  BINARY_DIR GenerateCLP-Build
-  CMAKE_GENERATOR ${gen}
-  CMAKE_ARGS
-    -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-    -DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
-    -DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_EXE_LINKER_FLAGS}
-    -DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_SHARED_LINKER_FLAGS}
-    -DCMAKE_BUILD_TYPE:STRING=${build_type}
-    -DBUILD_SHARED_LIBS:BOOL=${shared}
-    -DBUILD_EXAMPLES:BOOL=OFF
-    -DBUILD_TESTING:BOOL=OFF
-    -DITK_DIR:PATH=${ITK_DIR}
-    -DTCLAP_DIR:PATH=${TCLAP_DIR}
-    -DModuleDescriptionParser_DIR:PATH=${ModuleDescriptionParser_DIR}
-  INSTALL_COMMAND ""
-  DEPENDS
-    "tclap"
-    "ModuleDescriptionParser"
-  )
-set( GenerateCLP_DIR "${base}/GenerateCLP-Build" )
-set( Covalic_DEPENDS ${Covalic_DEPENDS} "GenerateCLP" "VTK" )
+set( Covalic_DEPENDS ${Covalic_DEPENDS} "SlicerExecutionModel" "VTK" )
 
 ##
 ## Covalic - Normal Build

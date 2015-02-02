@@ -18,8 +18,8 @@ endif( USE_SYSTEM_ITK )
 #-----------------------------------------------------------------------------
 # ITKv4 Switch
 option( Covalic_USE_ITKV4
-  "Compile with ITKv4. Only supported applications will be built."
-  OFF )
+  "Compile with ITKv4."
+  ON )
 mark_as_advanced( Covalic_USE_ITKV4 )
 
 #-----------------------------------------------------------------------------
@@ -34,8 +34,6 @@ if( Covalic_USE_SUPERBUILD )
 
 else( Covalic_USE_SUPERBUILD )
 
-  include( ${CMAKE_CURRENT_SOURCE_DIR}/CMake/Slicer3PluginsMacros.cmake )
-
   find_package( ITK REQUIRED )
   include( ${ITK_USE_FILE} )
 
@@ -43,6 +41,8 @@ else( Covalic_USE_SUPERBUILD )
   include( ${GenerateCLP_USE_FILE} )
 
 endif( Covalic_USE_SUPERBUILD )
+
+include( ${CMAKE_CURRENT_SOURCE_DIR}/CMake/Slicer3PluginsMacros.cmake )
 
 add_subdirectory( Documentation )
 add_subdirectory( Code )
