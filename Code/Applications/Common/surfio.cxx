@@ -186,7 +186,7 @@ void writeSurface(const char* fn, vtkPolyData* pd)
       vtkSmartPointer<vtkPolyDataWriter>::New();
     //writer->SetFileTypeToBinary();
     writer->SetFileName(fn);
-    writer->SetInput(pd);
+    writer->SetInputData(pd);
     writer->Update();
   }
   else if (std::string(fn).find(".byu") != std::string::npos)
@@ -195,7 +195,7 @@ void writeSurface(const char* fn, vtkPolyData* pd)
       vtkSmartPointer<vtkBYUWriter>::New();
     //writer->SetFileTypeToBinary();
     writer->SetGeometryFileName(fn);
-    writer->SetInput(pd);
+    writer->SetInputData(pd);
     writer->Update();
   }
   else if (std::string(fn).find(".ply") != std::string::npos)
@@ -204,7 +204,7 @@ void writeSurface(const char* fn, vtkPolyData* pd)
       vtkSmartPointer<vtkPLYWriter>::New();
     //writer->SetFileTypeToBinary();
     writer->SetFileName(fn);
-    writer->SetInput(pd);
+    writer->SetInputData(pd);
     writer->Update();
   }
   else

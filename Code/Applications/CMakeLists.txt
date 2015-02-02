@@ -14,19 +14,18 @@ else (VTK_FOUND)
   message(FATAL_ERROR "VTK not found. Please set VTK_DIR.")
 endif (VTK_FOUND)
 
-set(VTK_LIBRARIES
-  vtkFiltering
-  vtkGraphics
-  vtkHybrid
-  vtkImaging
-  vtkRendering
-  vtkIO
-  vtkCommon
+find_package(VTK COMPONENTS
+  vtkCommonCore
+  vtkFiltersCore
+  vtkFiltersSources
+  vtkIOLegacy
+  vtkIOPLY
 )
 
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Converters
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Applications/Common
   ${CMAKE_CURRENT_SOURCE_DIR}/../Metrics
 )
 

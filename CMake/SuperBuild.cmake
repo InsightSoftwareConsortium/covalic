@@ -17,7 +17,7 @@ set( gen "${CMAKE_GENERATOR}" )
 set( proj VTK )
 ExternalProject_Add( ${proj}
   GIT_REPOSITORY "${GIT_PROTOCOL}://vtk.org/VTK.git"
-  GIT_TAG "v5.10.1"
+  GIT_TAG "v6.1.0"
   SOURCE_DIR "${CMAKE_BINARY_DIR}/VTK"
   BINARY_DIR VTK-Build
   CMAKE_GENERATOR ${gen}
@@ -216,6 +216,3 @@ ExternalProject_Add( ${proj}
     ${Covalic_DEPENDS}
  )
 endif( NOT Covalic_USE_ITKV4 )
-
-
-

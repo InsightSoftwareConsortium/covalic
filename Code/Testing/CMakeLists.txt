@@ -14,16 +14,13 @@ else (VTK_FOUND)
   message(FATAL_ERROR "VTK not found. Please set VTK_DIR.")
 endif (VTK_FOUND)
 
-set(VTK_LIBRARIES
-  vtkFiltering
-  vtkGraphics
-  vtkHybrid
-  vtkImaging
-  vtkRendering
-  vtkIO
-  vtkCommon
+find_package(VTK COMPONENTS
+  vtkCommonCore
+  vtkFiltersCore
+  vtkFiltersSources
+  vtkIOLegacy
+  vtkIOPLY
 )
-
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../Converters
@@ -45,9 +42,4 @@ add_executable(validateLabelImages validateLabelImages.cxx)
 target_link_libraries(testImageMetrics ${ITK_LIBRARIES} ${VTK_LIBRARIES})
 target_link_libraries(testSurfMetrics ${ITK_LIBRARIES} ${VTK_LIBRARIES})
 target_link_libraries(randomizeLabel ${ITK_LIBRARIES})
-target_link_libraries(validateLabelImages ${ITK_LIBRARIES}
-  vtkCommon
-  vtkGraphics
-  vtkIO
-  vtkFiltering
-)
+target_link_libraries(validateLabelImages ${ITK_LIBRARIES} ${VTK_LIBRARIES})
