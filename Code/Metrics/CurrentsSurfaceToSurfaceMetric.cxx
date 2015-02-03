@@ -129,14 +129,14 @@ CurrentsSurfaceToSurfaceMetric
 
 }
 
-vtkSmartPointer<vtkPolyData> 
+vtkSmartPointer<vtkPolyData>
 CurrentsSurfaceToSurfaceMetric
 ::ComputeWeightedPDNormals(vtkPolyData* polyData) const
 {
   // Make sure we only have triangles (not strips or polys)
   vtkSmartPointer<vtkTriangleFilter> trif =
     vtkSmartPointer<vtkTriangleFilter>::New();
-  trif->SetInput(polyData);
+  trif->SetInputData(polyData);
   trif->PassVertsOff();
   trif->PassLinesOff();
   trif->Update();

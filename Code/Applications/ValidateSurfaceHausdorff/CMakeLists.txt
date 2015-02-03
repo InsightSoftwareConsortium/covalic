@@ -31,6 +31,9 @@ include_directories(
   )
 
 set( PROJECT_SOURCE
+  ${Covalic_SOURCE_DIR}/Code/Applications/Common/surfio.cxx
+  ${Covalic_SOURCE_DIR}/Code/Metrics/SurfaceToSurfaceMetric.cxx
+  ${Covalic_SOURCE_DIR}/Code/Metrics/HausdorffDistanceSurfaceToSurfaceMetric.cxx
   ${PROJECT_NAME}.cxx
   )
 
@@ -44,9 +47,6 @@ target_link_libraries( ${PROJECT_NAME}Module ${ITK_LIBRARIES} ${VTK_LIBRARIES})
 
 add_executable(
   ${PROJECT_NAME}
-  ../Common/surfio.cxx
-  ${Covalic_SOURCE_DIR}/Code/Metrics/SurfaceToSurfaceMetric.cxx
-  ${Covalic_SOURCE_DIR}/Code/Metrics/HausdorffDistanceSurfaceToSurfaceMetric.cxx
   ${Covalic_SOURCE_DIR}/Utilities/covalicCLISharedLibraryWrapper.cxx
 )
 target_link_libraries( ${PROJECT_NAME} ${PROJECT_NAME}Module )
