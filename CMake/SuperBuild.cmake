@@ -14,6 +14,19 @@ set( Covalic_DEPENDS "" )
 
 set( gen "${CMAKE_GENERATOR}" )
 
+if( NOT GIT_EXECUTABLE )
+  find_package( Git REQUIRED )
+endif( NOT GIT_EXECUTABLE )
+
+option( GIT_PROTOCOL_HTTP
+  "Use HTTP for git access (useful if behind a firewall)" OFF )
+if( GIT_PROTOCOL_HTTP )
+  set( GIT_PROTOCOL "http" CACHE STRING "Git protocol for file transfer" )
+else( GIT_PROTOCOL_HTTP )
+  set( GIT_PROTOCOL "git" CACHE STRING "Git protocol for file transfer" )
+endif( GIT_PROTOCOL_HTTP )
+mark_as_advanced( GIT_PROTOCOL )
+
 set( proj VTK )
 ExternalProject_Add( ${proj}
   GIT_REPOSITORY "${GIT_PROTOCOL}://vtk.org/VTK.git"
@@ -40,20 +53,6 @@ set( VTK_DIR "${base}/VTK-Build" )
 ## Check if sytem ITK or superbuild ITK (or ITKv4)
 ##
 if( NOT USE_SYSTEM_ITK )
-
-  if( NOT GIT_EXECUTABLE )
-    find_package( Git REQUIRED )
-  endif( NOT GIT_EXECUTABLE )
-
-  option( GIT_PROTOCOL_HTTP
-    "Use HTTP for git access (useful if behind a firewall)" OFF )
-  if( GIT_PROTOCOL_HTTP )
-    set( GIT_PROTOCOL "http" CACHE STRING "Git protocol for file transfer" )
-  else( GIT_PROTOCOL_HTTP )
-    set( GIT_PROTOCOL "git" CACHE STRING "Git protocol for file transfer" )
-  endif( GIT_PROTOCOL_HTTP )
-  mark_as_advanced( GIT_PROTOCOL )
-
   ##
   ## Insight
   ##
