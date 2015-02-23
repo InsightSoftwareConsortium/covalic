@@ -74,7 +74,7 @@ validateLabelImages(const char* fixedfn, const char* movingfn)
     calc->SetMovingImage(movingImage);
     calc->Update();
     for (unsigned int i = 0; i < calc->GetNumberOfValues(); i++)
-      std::cout << "Dice_" << i+1 << "=" << calc->GetValue(i) << std::endl;
+      std::cout << "Dice" << i+1 << "=" << calc->GetValue(i) << std::endl;
   }
 
   typedef MultipleBinaryImageMetricsCalculator<ImageType, ImageType, JaccardMetricType>
@@ -85,7 +85,7 @@ validateLabelImages(const char* fixedfn, const char* movingfn)
     calc->SetMovingImage(movingImage);
     calc->Update();
     for (unsigned int i = 0; i < calc->GetNumberOfValues(); i++)
-      std::cout << "Jaccard_" << i+1 << "=" << calc->GetValue(i) << std::endl;
+      std::cout << "Jac" << i+1 << "=" << calc->GetValue(i) << std::endl;
   }
 
   typedef MultipleBinaryImageMetricsCalculator<ImageType, ImageType, SpecificityMetricType>
@@ -96,7 +96,7 @@ validateLabelImages(const char* fixedfn, const char* movingfn)
     calc->SetMovingImage(movingImage);
     calc->Update();
     for (unsigned int i = 0; i < calc->GetNumberOfValues(); i++)
-      std::cout << "Specificity_" << i+1 << "=" << calc->GetValue(i) << std::endl;
+      std::cout << "Spec" << i+1 << "=" << calc->GetValue(i) << std::endl;
   }
 
   typedef MultipleBinaryImageMetricsCalculator<ImageType, ImageType, SensitivityMetricType>
@@ -107,7 +107,7 @@ validateLabelImages(const char* fixedfn, const char* movingfn)
     calc->SetMovingImage(movingImage);
     calc->Update();
     for (unsigned int i = 0; i < calc->GetNumberOfValues(); i++)
-      std::cout << "Sensitivity_" << i+1 << "=" << calc->GetValue(i) << std::endl;
+      std::cout << "Sens" << i+1 << "=" << calc->GetValue(i) << std::endl;
   }
 
   typedef MultipleBinaryImageMetricsCalculator<ImageType, ImageType, PPVMetricType>
@@ -118,7 +118,7 @@ validateLabelImages(const char* fixedfn, const char* movingfn)
     calc->SetMovingImage(movingImage);
     calc->Update();
     for (unsigned int i = 0; i < calc->GetNumberOfValues(); i++)
-      std::cout << "PPV_" << i+1 << "=" << calc->GetValue(i) << std::endl;
+      std::cout << "Ppv" << i+1 << "=" << calc->GetValue(i) << std::endl;
   }
 
   typedef MultipleBinaryImageMetricsCalculator<ImageType, ImageType, AverageDistanceMetricType>
@@ -129,7 +129,7 @@ validateLabelImages(const char* fixedfn, const char* movingfn)
     calc->SetMovingImage(movingImage);
     calc->Update();
     for (unsigned int i = 0; i < calc->GetNumberOfValues(); i++)
-      std::cout << "AverageDistance_" << i+1 << "=" << calc->GetValue(i) << std::endl;
+      std::cout << "Adb" << i+1 << "=" << calc->GetValue(i) << std::endl;
   }
 
   typedef MultipleBinaryImageMetricsCalculator<ImageType, ImageType, HausdorffDistanceMetricType>
@@ -140,13 +140,13 @@ validateLabelImages(const char* fixedfn, const char* movingfn)
     calc->SetMovingImage(movingImage);
     calc->Update();
     for (unsigned int i = 0; i < calc->GetNumberOfValues(); i++)
-      std::cout << "HausdorffDistance_" << i+1 << "=" << calc->GetValue(i) << std::endl;
+      std::cout << "Hdb" << i+1 << "=" << calc->GetValue(i) << std::endl;
   }
 
   KappaMetricType::Pointer kappa = KappaMetricType::New();
   kappa->SetFixedImage(fixedImage);
   kappa->SetMovingImage(movingImage);
-  std::cout << "Kappa=" << kappa->GetValue() << std::endl;
+  std::cout << "Kap" << kappa->GetValue() << std::endl;
 
   return 0;
 }
