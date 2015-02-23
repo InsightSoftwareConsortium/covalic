@@ -118,7 +118,7 @@ validateLabelImages(const char* fixedfn, const char* movingfn)
     calc->SetMovingImage(movingImage);
     calc->Update();
     for (unsigned int i = 0; i < calc->GetNumberOfValues(); i++)
-      std::cout << "Ppv" << i+1 << "=" << calc->GetValue(i) << std::endl;
+      std::cout << "PPV" << i+1 << "=" << calc->GetValue(i) << std::endl;
   }
 
   typedef MultipleBinaryImageMetricsCalculator<ImageType, ImageType, AverageDistanceMetricType>
@@ -146,7 +146,7 @@ validateLabelImages(const char* fixedfn, const char* movingfn)
   KappaMetricType::Pointer kappa = KappaMetricType::New();
   kappa->SetFixedImage(fixedImage);
   kappa->SetMovingImage(movingImage);
-  std::cout << "Kap" << kappa->GetValue() << std::endl;
+  std::cout << "Kap=" << kappa->GetValue() << std::endl;
 
   return 0;
 }
