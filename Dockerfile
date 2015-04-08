@@ -10,6 +10,7 @@ COPY Code /covalic/Code
 COPY Documentation /covalic/Documentation
 COPY Utilities /covalic/Utilities
 COPY CMakeLists.txt /covalic/CMakeLists.txt
+COPY Python /covalic/Python
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -20,4 +21,4 @@ RUN apt-get update && apt-get install -y \
 RUN cmake /covalic
 RUN make -j4
 
-ENTRYPOINT ["Covalic-Build/Code/Testing/validateLabelImages"]
+ENTRYPOINT ["python", "/covalic/Python/scoreSubmission.py"]
