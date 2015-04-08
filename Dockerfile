@@ -17,7 +17,8 @@ RUN apt-get update && apt-get install -y \
     cmake \
     freeglut3-dev \
     git \
-    mesa-common-dev
+    mesa-common-dev \
+    python
 RUN cmake /covalic
 RUN make -j4
 
