@@ -66,7 +66,7 @@ def runScoring(truth, test):
     """
     command = (
         '/covalic/_build/Covalic-Build/Code/Testing/validateLabelImages',
-        '/data/ground_truth/' + os.path.basename(truth),
+        '/data/groundtruth/' + os.path.basename(truth),
         '/data/submission/' + os.path.basename(test)
     )
 
