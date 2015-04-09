@@ -115,7 +115,7 @@ def scoreAll(args):
             'metrics': runScoring(truth, sub)
         })
 
-    print json.dumps(scores)
+    print(json.dumps(scores))
 
 
 if __name__ == '__main__':
