@@ -8,10 +8,13 @@
 # then builds a JSON response that it prints out at the end representing the
 # final scoring output of the whole submission.
 
+from __future__ import print_function
+
 import argparse
 import json
 import os
 import subprocess
+import sys
 import zipfile
 
 
@@ -72,10 +75,10 @@ def runScoring(truth, test):
     stdout, stderr = p.communicate()
 
     if p.returncode != 0:
-        print('Error scoring %s:' % test)
-        print('Command: ' + ' '.join(command))
-        print('STDOUT: ' + stdout)
-        print('STDERR: ' + stderr)
+        print('Error scoring %s:' % test, file=sys.stderr)
+        print('Command: ' + ' '.join(command), file=sys.stderr)
+        print('STDOUT: ' + stdout, file=sys.stderr)
+        print('STDERR: ' + stderr, file=sys.stderr)
 
         raise Exception('Scoring subprocess returned error code {}'.format(
             p.returncode))
