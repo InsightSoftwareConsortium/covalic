@@ -47,3 +47,7 @@ add_subdirectory(ValidateImageKappa)
 # Metrics for surfaces
 add_subdirectory(ValidateSurfaceCurrents)
 add_subdirectory(ValidateSurfaceHausdorff)
+
+# Image perturbations
+add_subdirectory(PerturbImageLabelsMorphology)
+add_subdirectory(PerturbImageLabelsAffine)

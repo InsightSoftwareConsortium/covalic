@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+
+  <category>Validation</category>
+  <title>Peturb Image Labels Affine</title>
+  <description></description>
+  <version>0.1.0</version>
+  <documentation-url>http://www.kitware.com/midaswiki/index.php/Projects/COVALIC</documentation-url>
+  <license>Apache 2.0</license>
+  <contributor>Marcel Prastawa</contributor>
+  <acknowledgements>This is part of COVALIC.</acknowledgements>
+
+  <parameters>
+    <label>Perturbation</label>
+
+    <float>
+    <name>maxRotationAngle</name>
+    <description>Maximum angle of rotation</description>
+    <longflag>maxRotationAngle</longflag>
+    <default>30.0</default>
+    </float>
+
+    <float>
+    <name>maxScaleFactor</name>
+    <description>Maximum scaling factor</description>
+    <longflag>maxScaleFactor</longflag>
+    <default>1.2</default>
+    </float>
+
+  </parameters>
+
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+    <image>
+      <name>inputVolume</name>
+      <label>Input Volume</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Input volume</description>
+    </image>
+    <image>
+      <name>outputVolume</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <index>1</index>
+      <description>Output volume</description>
+    </image>
+
+  </parameters>
+
+</executable>
