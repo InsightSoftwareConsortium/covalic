@@ -27,6 +27,13 @@
     <default>1.2</default>
     </float>
 
+    <float>
+    <name>maxTranslation</name>
+    <description>Maximum amount of translation</description>
+    <longflag>maxTranslation</longflag>
+    <default>10.0</default>
+    </float>
+
   </parameters>
 
   <parameters>
