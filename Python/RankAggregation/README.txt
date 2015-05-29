@@ -36,3 +36,8 @@ rankagg script:
   weight /= numPerturbations + 1
 
   assumes that weight near 0 for unreliable metrics (not consistent)
+
+User input:
+  priority mask for segmentations (specific case, boundary, center)
+  weight for selection and ranking
+  alter rank weighings

@@ -17,21 +17,21 @@
     <name>maxRotationAngle</name>
     <description>Maximum angle of rotation</description>
     <longflag>maxRotationAngle</longflag>
-    <default>30.0</default>
+    <default>15.0</default>
     </float>
 
     <float>
     <name>maxScaleFactor</name>
     <description>Maximum scaling factor</description>
     <longflag>maxScaleFactor</longflag>
-    <default>1.2</default>
+    <default>1.1</default>
     </float>
 
     <float>
     <name>maxTranslation</name>
     <description>Maximum amount of translation</description>
     <longflag>maxTranslation</longflag>
-    <default>10.0</default>
+    <default>5.0</default>
     </float>
 
   </parameters>
