@@ -5,14 +5,11 @@
 
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 
-#include "itkCenteredAffineTransform.h"
 #include "itkResampleImageFilter.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
-#include "itkImageMomentsCalculator.h"
 
 #include "itkBSplineTransform.h"
 #include "itkBSplineTransformInitializer.h"
-#include "itkTransformToDisplacementFieldFilter.h"
 
 #include "itkOutputWindow.h"
 #include "itkTextOutput.h"
@@ -26,13 +23,7 @@
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "itkAffineTransform.h"
 #include "itkResampleImageFilter.h"
-#include "itkWindowedSincInterpolateImageFunction.h"
-
-# define PI 3.14159265
-
-
 
 
 int
