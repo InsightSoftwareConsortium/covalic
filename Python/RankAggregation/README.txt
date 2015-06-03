@@ -1,20 +1,17 @@
 
 Rank aggregation using machine learning
 
+Requires: numpy, scipy, SimpleITK
+
+Example usage:
+python computeRankWeights.py /home/user/covalic-SuperBuild/Covalic-Build/lib/covalic/Plugins  /data/ground_truth_root /data/submissions_root
+
 ===
 
 TODO:
 
 C++ binary / SimpleITK for perturbing segmentation
   deformation along normals of whole surface (non-zero mask)
-  random dilation / erosion? 
-    loop:
-    flip coin -> dilation / erosion
-    generate random structuring element with center = 1
-    apply morpho filter, repeat
-
-C++ binary / Python: ValidateImageRandom
-  for any input return random(0, 100)
 
 rankagg script:
   get binary path, ground truth path, submissions path

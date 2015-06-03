@@ -20,6 +20,9 @@ import numpy as np
 import os, sys
 import glob
 
+import random
+
+import shutil
 import subprocess
 import tempfile
 
@@ -28,8 +31,8 @@ def getMetricValues(textFilename, numLabels):
 
   f = open(textFilename, 'r')
 
-  # Tag missing segmentation objects with infinity
-  metrics = [np.inf] * numLabels
+  # Tag missing segmentation objects using nan
+  metrics = [np.nan] * numLabels
 
   for line in f:
     name, value = line.split('=')
@@ -37,13 +40,18 @@ def getMetricValues(textFilename, numLabels):
     inner = name.split("(")[1]
     item  = inner.split(",")[0]
 
+    value = float(value)
+    # For consistency, tag inf as nan 
+    if np.isinf(value):
+      value = np.nan
+
     if len(item.split("_")) < 2:
       # Single entry for multiple objects (e.g., kappa)
-      return [float(value)]
+      return [value]
 
     index = int( item.split("_")[1] ) - 1
 
-    metrics[index] = float(value)
+    metrics[index] = value
 
   #print "Metric values for",  metrics
   return metrics
@@ -70,7 +78,12 @@ if __name__ == "__main__":
 
   # TODO DEBUG
   # Take out special cases
-  metricBinaryList = [m for m in metricBinaryList if m.find("Kappa") < 0]
+  #metricBinaryList = [m for m in metricBinaryList if m.find("Kappa") < 0]
+
+  # DEBUG
+  debugAddRandom = False
+  if debugAddRandom:
+    random.seed(279075032630680)
 
   if not metricBinaryList:
     print "No image metric apps detected"
@@ -106,13 +119,34 @@ if __name__ == "__main__":
   # Distance measures are marked negative
   metricOrder = []
   for i in range(numMetrics):
-    if metricBinaryList[i].find("Distance") >= 0:
-      metricOrder += [-1] * numObjects
-    elif metricBinaryList[i].find("Kappa") >= 0:
-      metricOrder += [1]
+    if metricBinaryList[i].find("Kappa") >= 0:
+      metricOrder += [1] # Only one value for entire object set
+    elif metricBinaryList[i].find("Dist") >= 0:
+      metricOrder += [-1] * numObjects # Smaller is better
     else:
-      metricOrder += [1] * numObjects
+      metricOrder += [1] * numObjects # Default, larger is better
+
+  if debugAddRandom:
+    metricOrder += [1]
+
   metricOrder = np.array(metricOrder, np.float64)
+
+  # Name of each element in evaluation (by metric-object)
+  metricNames = []
+  for i in range(numMetrics):
+    m = os.path.basename(metricBinaryList[i])
+    m = m[len("ValidateImage"):]
+    if metricBinaryList[i].find("Kappa") >= 0:
+      metricNames += [m + "_all"]
+    else:
+      for j in range(numObjects):
+        metricNames += [m + "_object" + str(j+1)]
+
+  if debugAddRandom:
+    metricNames += ["Random"]
+
+  print "Metric names:\n", metricNames
+  print "Metric order:\n", metricOrder
 
   submissionFilesTable = []
   for p in sorted(glob.glob(os.path.join(submissionsRootPath, "*"))):
@@ -135,13 +169,11 @@ if __name__ == "__main__":
         if match:
           submissionFiles.append(f)
 
-      # Check for completeness
-      # TODO: allow incomplete submissions?
-      if len(submissionFiles) == len(groundTruthFiles):
-        submissionFilesTable.append(submissionFiles)
-      else:
-        raise Exception("WARNING: submissions in", p,
-          "does not match file count of ground truth")
+      # Check for zero entries in a submission path
+      if len(submissionFiles) == 0:
+        raise Exception("Zero submissions found in " + p)
+
+      submissionFilesTable.append(submissionFiles)
 
   numSamples = len(submissionFilesTable)
 
@@ -149,17 +181,19 @@ if __name__ == "__main__":
 
   # Compute average weights with different perturbations and bagging
   # represents multiple metrics and multiple objects
-  averageWeights = np.zeros(numMetrics * numObjects, np.float64)
+  averageWeights = np.zeros((len(metricNames),), np.float64)
 
-  numPerturbations = 5
+  numPerturbations = 10
+
+  tempFileSet = set()
 
   # TODO: rank each case separately compute average weights for different
   # perturbations, then average them
   # OR
   # pool samples based on algorithm-cases? each an observation?
   for t in range(numPerturbations):
-    #sampleInd = np.random.permutation(numSamples)[:numSubSamples]
-    sampleInd = range(numSamples)
+    sampleInd = np.random.permutation(numSamples)[:numSubSamples]
+    #sampleInd = range(numSamples)
 
     for i in sampleInd:
 
@@ -168,13 +202,16 @@ if __name__ == "__main__":
       submissionFiles = submissionFilesTable[i]
 
       # Pick a type of perturbation
-      perturber = perturbBinaryList[np.random.randint(0, numPerturbers)]
+      j = np.random.randint(0, numPerturbers+1)
+      if j < numPerturbers:
+        perturber = perturbBinaryList[j]
+      else:
+        perturber = "PassThrough"
 
       print "Applying", os.path.basename(perturber)
 
       for q in range(len(groundTruthFiles)):
         gt = groundTruthFiles[q]
-
 
         # Search for match to this ground truth in submissions list
         subm = None
@@ -186,15 +223,16 @@ if __name__ == "__main__":
 
         # Handle missing submissions
         if subm is None:
-          # TODO
-          #missingEntry = np.ones((numMetrics,), np.float64)
-          #missingEntry[:] = np.inf
-          #metricValues.append(missingEntry)
-          raise Exception("Missing submissions for", gt)
+          print "WARNING: Missing submissions for", gt, \
+            "in path", os.path.dirname(submissionFiles[0])
+          metricTable.append( [np.nan] * len(metricNames) )
+          continue
 
         # Output perturbed image to temp dir
         psubm = os.path.join(tempfile.gettempdir(),
           "pert_" + os.path.basename(subm))
+
+        tempFileSet.add(psubm)
 
         textout = os.path.join(tempfile.gettempdir(), psubm + ".out")
 
@@ -204,9 +242,12 @@ if __name__ == "__main__":
 
         #print "Running", command
 
-        p = subprocess.Popen(args=command, stdout=subprocess.PIPE,
-          stderr=subprocess.PIPE)
-        stdout, stderr = p.communicate()
+        if perturber == "PassThrough":
+          shutil.copyfile(subm, psubm)
+        else:
+          p = subprocess.Popen(args=command, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+          stdout, stderr = p.communicate()
 
         # Evaluate each metric on gt and perturbed submission
         metricValues = []
@@ -223,29 +264,67 @@ if __name__ == "__main__":
 
           metricValues += getMetricValues(textout, numObjects)
 
+        if debugAddRandom:
+          metricValues += [random.uniform(0,100)]
+
         metricTable.append(metricValues)
 
       metricTable = np.array(metricTable, np.float64)
 
+      # TODO: fill missing/nan values using transduction or draw from a
+      # distribution estimate p(rank | submission)?
+
       print metricTable.shape
-      print metricTable
+      print np.around(metricTable, decimals=5)
 
       rankagg = UnsupervisedLearningRankAggregator()
       rankagg.aggregate(metricTable, metricOrder)
 
       #averageWeights += rankagg.get_weights()
       w = rankagg.get_weights()
-      if t % 20 == 0:
-        print w
+
+      #if t % 20 == 0:
+      #  print "Weights", np.around(w, decimals=3)
+      print "Weights", np.around(w, decimals=3)
+
       averageWeights += w
 
   #TODO?
-  #averageWeights /= numSubSamples
-  averageWeights /= numSamples
+  averageWeights /= numSubSamples
+  #averageWeights /= numSamples
 
   averageWeights /= numPerturbations
 
-  print "Average weights = ", averageWeights
+  print "Sum weights = ", np.sum(averageWeights)
+
+  print "Metric names:\n", metricNames
+  print "Average weights =\n", np.around(averageWeights, decimals=3)
+
+  imin = np.argmin(averageWeights)
+  print "Smallest weight is", averageWeights[imin], "for", metricNames[imin]
+  imax = np.argmax(averageWeights)
+  print "Largest weight is", averageWeights[imax], "for", metricNames[imax]
 
   # Store average weights for future evaluation
-  np.save("metric_weights.npy", average_weights)
+  with open("metricNames.txt", 'w') as file:
+    for item in metricNames:
+      file.write("%s\n" % item)
+
+  np.save("metric_weights.npy", averageWeights)
+
+  # TODO
+  # Apply computed weights to get rankings, averaged over different cases
+  # finalRank = zeros(numSubmissions)
+  # for gt in groundTruthFiles:
+  #   rankagg = UnsupervisedLearningRankAggregator()
+  #   rankagg.set_weights(averageWeights)
+  #   rank_g = rankagg.get_aggregated_rank(metricTable, metricOrder)
+  # finalRank /= numSubmissions
+  # finalRank = np.argsort(finalRank)
+  #print "Final aggregated rank\n", finalRank
+  #print "Best submission is in", os.path.dirname(submissionFileTable[finalRank][0])
+
+
+  # Clean up: remove perturbed images in temporary directory
+  for f in tempFileSet:
+    os.remove(f)

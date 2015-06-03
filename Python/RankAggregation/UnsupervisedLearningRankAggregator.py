@@ -7,22 +7,33 @@
 # Klementiev, A., Roth, D., & Small, K. (2007). An unsupervised learning
 # algorithm for rank aggregation. In Machine Learning: ECML 2007 (pp. 616-623).
 #
-# Author: Marcel Prastawa, April 2015
+# Author: Marcel Prastawa
 #
 
 import numpy as np
+import scipy.stats.mstats as mstats
 
 class UnsupervisedLearningRankAggregator:
 
   def __init__(self):
-    # Threshold, missing data/rank should be Inf
-    self.threshold = 1000
+    # Metric precision, number of decimals to be considered for ranking
+    self.decimals = 4
 
-    self.maxIterations = 1000
+    # Threshold for ranks
+    self.threshold = 100
 
-    self.learningRate = 0.5
+    self.maxIterations = 100
+
+    self.learningRate = 0.01
+
+    self.tolerance = 1e-4
 
     self.weights = None
+
+  def set_decimals(self, n):
+    if n < 1:
+      raise Exception("Decimals must be >= 1")
+    self.decimals = n
 
   def get_weights(self):
     return self.weights
@@ -33,12 +44,30 @@ class UnsupervisedLearningRankAggregator:
   def set_threshold(self, t):
     self.threshold = t
 
+  def get_rank_vector(self, x):
+    """Get ranking with explicit handling of missing values, tagged as nan."""
+
+    if np.all(np.isnan(x)):
+      return np.ones(len(x)) * len(x)
+
+    ranks = mstats.rankdata(np.ma.masked_invalid(x))
+
+    # Make all missing data have the same rank, not ordered by appearance
+    #ranks[ranks == 0] = len(x) + 1
+    ranks[ranks == 0] = np.nan
+
+    ranks -= 1
+
+    return ranks
+
   def aggregate(self, metricTable, metricOrder):
+    """ Compute weights that aggregate multiple rank metrics."""
 
     numSamples = metricTable.shape[0]
     numMetrics = metricTable.shape[1]
 
     self.weights = np.ones(numMetrics, np.float64) / numMetrics
+    #self.weights = np.zeros(numMetrics, np.float64)
 
     rankTable = np.zeros((numSamples, numMetrics), np.float64)
     for i in range(numMetrics):
@@ -47,20 +76,30 @@ class UnsupervisedLearningRankAggregator:
         # Higher value is better
         metricValues *= -1.0
 
-      rankTable[:,i] = np.argsort(metricValues)
-      # TODO: if value = Inf mark rank as missing, also Inf
+      # Round the values, consider insignificant bits to be equal
+      metricValues = np.around(metricValues, decimals=self.decimals)
+
+      rankTable[:,i] = self.get_rank_vector(metricValues)
 
     #print "Ranks", rankTable
 
+    rankTable[np.isnan(rankTable)] = numSamples
+
+    numMissingPerRow = np.sum(np.isnan(rankTable), axis=1)
+
+    maskedRankTable = rankTable.copy()
+    maskedRankTable[np.isnan(maskedRankTable)] = 0
+
     for optIter in range(self.maxIterations):
-      #print "Weights = ", self.weights
+      #print "Weights iter", optIter, " = ", np.around(self.weights, decimals=3)
 
-      numThresholded = np.sum(rankTable <= self.threshold)
+      numThresholded = \
+        np.sum(maskedRankTable <= self.threshold, axis=1)
+        #np.sum(maskedRankTable <= self.threshold, axis=1) - numMissingPerRow
+      numThresholded += 1e-20
 
-      if numThresholded < 5:
-        break
-
-      meanRank = np.sum(rankTable, axis=1) / numThresholded
+      #meanRank = np.sum(rankTable, axis=1) / numThresholded
+      meanRank = np.sum(maskedRankTable, axis=1) / numThresholded
 
       #print "Mean rank", meanRank
 
@@ -73,15 +112,28 @@ class UnsupervisedLearningRankAggregator:
         delta_i[rank_i > self.threshold] = \
           self.threshold + 1.0 - meanRank[rank_i > self.threshold]
 
+        delta_i[np.isnan(delta_i)] = 0
+
         delta_i = delta_i ** 2.0
 
-        weightUpdates[i] = np.exp(-self.learningRate * np.sum(delta_i))
+        weightUpdates[i] = \
+          self.weights[i] * np.exp(-self.learningRate * np.sum(delta_i))
+          #self.weights[i] + self.learningRate * np.sum(delta_i) 
       
+      prevWeights = self.weights
+
       self.weights = weightUpdates / weightUpdates.sum()
+
+      if np.max(np.abs(self.weights - prevWeights)) < self.tolerance: 
+        break
 
     #print "Final weights = ", self.weights
 
   def get_aggregated_rank(self, metricTable, metricOrder):
+    """Get aggregated rank given current weight estimate."""
+
+    if self.weights is None:
+      raise Exception("Need to run aggregate() first.")
 
     numSamples = metricTable.shape[0]
     numMetrics = metricTable.shape[1]
@@ -93,9 +145,21 @@ class UnsupervisedLearningRankAggregator:
         # Higher value is better
         metricValues *= -1.0
 
-      Rweighted += self.weights[i] * np.argsort(metricValues)
+      # Round the values, consider insignificant bits to be equal
+      metricValues = np.around(metricValues, decimals=self.decimals)
 
-    return np.argsort(Rweighted)
+      Ri = self.get_rank_vector(metricValues)
+      Ri[np.isnan(Ri)] = len(metricValues)
+      Ri[Ri > self.threshold] = self.threshold + 1
+
+      Rweighted += self.weights[i] * Ri
+
+
+    # Round average ranks since there are potential duplicates due to
+    # missing data
+    #Rweighted = np.around(Rweighted, decimals=1)
+
+    return self.get_rank_vector(Rweighted)
 
 
 if __name__ == "__main__":
@@ -117,9 +181,10 @@ if __name__ == "__main__":
     metricValues[:,i] = np.round(x)
   metricValues[:,-1] = np.round( np.random.rand(numSamples) * 100 )
 
-
   # Create outlier
   #metricValues[7,1] = 20000
+  metricValues[7,0] = np.nan
+  metricValues[10,2] = np.nan
 
   metricOrder = np.ones(numMetrics)
 
@@ -127,7 +192,7 @@ if __name__ == "__main__":
 
   averageWeights = np.zeros(numMetrics, np.float64)
 
-  numPerturbations = 300
+  numPerturbations = 100
 
   for t in range(numPerturbations):
     sampleInd = np.random.permutation(numSamples)[:numSubSamples]
@@ -143,21 +208,32 @@ if __name__ == "__main__":
 
     #averageWeights += rankagg.get_weights()
     w = rankagg.get_weights()
-    if t % 20 == 0:
-      print w
+    #if t % 20 == 0:
+    #  print w
+
     averageWeights += w
 
   averageWeights /= numPerturbations
 
-  print "Average weights = ", averageWeights
+  #print "Average weights = ", averageWeights
+  print "Average weights = ", np.around(averageWeights, decimals=3)
 
   
   rankagg = UnsupervisedLearningRankAggregator()
   rankagg.set_weights(averageWeights)
 
-  print "Aggregated rank\n", rankagg.get_aggregated_rank(metricValues, metricOrder)
-  print "True rank\n", trueRank
+  x = np.random.rand(8)
+  x[2] = np.nan
+  x[5] = np.nan
+  print "x", x
+  print "argsort(x)", np.argsort(x)
+  print "ranking(x)", rankagg.get_rank_vector(x)
 
-  averageWeights[-1] += 0.2
+  print "True rank\n", np.float64(trueRank)
+
+  print "Aggregated rank with estimated weights\n", rankagg.get_aggregated_rank(metricValues, metricOrder)
+
+  averageWeights[:] = 1.0
+  averageWeights /= averageWeights.sum()
   rankagg.set_weights(averageWeights)
-  print "Aggregated rank with random put back in\n", rankagg.get_aggregated_rank(metricValues, metricOrder)
+  print "Aggregated rank with equal weights\n", rankagg.get_aggregated_rank(metricValues, metricOrder)
