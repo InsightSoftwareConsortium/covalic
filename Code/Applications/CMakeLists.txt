@@ -51,3 +51,4 @@ add_subdirectory(ValidateSurfaceHausdorff)
 # Image perturbations
 add_subdirectory(PerturbImageLabelsMorphology)
 add_subdirectory(PerturbImageLabelsAffine)
+add_subdirectory(PerturbImageLabelsBSpline)
