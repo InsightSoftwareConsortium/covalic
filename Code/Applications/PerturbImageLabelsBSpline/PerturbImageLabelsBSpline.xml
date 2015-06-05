@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+
+  <category>Validation</category>
+  <title>Peturb Image Labels BSpline</title>
+  <description></description>
+  <version>0.1.0</version>
+  <documentation-url>http://www.kitware.com/midaswiki/index.php/Projects/COVALIC</documentation-url>
+  <license>Apache 2.0</license>
+  <contributor>Marcel Prastawa</contributor>
+  <acknowledgements>This is part of COVALIC.</acknowledgements>
+
+  <parameters>
+    <label>Perturbation</label>
+
+    <float>
+    <name>normalMean</name>
+    <description>Mean for Gaussian random numbers</description>
+    <longflag>normalMean</longflag>
+    <default>0.0</default>
+    </float>
+
+    <float>
+    <name>normalVariance</name>
+    <description>Variance for Gaussian random numbers</description>
+    <longflag>normalVariance</longflag>
+    <default>1.0</default>
+    </float>
+
+    <integer>
+    <name>gridNodes</name>
+    <description>Number of BSpline grid nodes</description>
+    <longflag>gridNodes</longflag>
+    <default>8</default>
+    </integer>
+
+  </parameters>
+
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+    <image>
+      <name>inputVolume</name>
+      <label>Input Volume</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Input volume</description>
+    </image>
+    <image>
+      <name>outputVolume</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <index>1</index>
+      <description>Output volume</description>
+    </image>
+
+  </parameters>
+
+</executable>
