@@ -22,9 +22,9 @@ class UnsupervisedLearningRankAggregator:
     # Threshold for ranks
     self.threshold = 100
 
-    self.maxIterations = 100
+    self.maxIterations = 200
 
-    self.learningRate = 0.01
+    self.learningRate = 0.001
 
     self.tolerance = 1e-4
 
@@ -60,65 +60,83 @@ class UnsupervisedLearningRankAggregator:
 
     return ranks
 
-  def aggregate(self, metricTable, metricOrder):
+  def aggregate(self, metricTableList, metricOrder):
     """ Compute weights that aggregate multiple rank metrics."""
 
-    numSamples = metricTable.shape[0]
-    numMetrics = metricTable.shape[1]
+    numTables = len(metricTableList)
+
+    numSamples = metricTableList[0].shape[0]
+    numMetrics = metricTableList[0].shape[1]
 
     self.weights = np.ones(numMetrics, np.float64) / numMetrics
     #self.weights = np.zeros(numMetrics, np.float64)
 
-    rankTable = np.zeros((numSamples, numMetrics), np.float64)
-    for i in range(numMetrics):
-      metricValues = metricTable[:,i].copy() # Smaller value is better
-      if metricOrder[i] > 0:
-        # Higher value is better
-        metricValues *= -1.0
+    rankTableList = []
 
-      # Round the values, consider insignificant bits to be equal
-      metricValues = np.around(metricValues, decimals=self.decimals)
+    for metricTable in metricTableList:
 
-      rankTable[:,i] = self.get_rank_vector(metricValues)
+      rankTable = np.zeros((numSamples, numMetrics), np.float64)
+      for i in range(numMetrics):
+        metricValues = metricTable[:,i].copy() # Smaller value is better
+        if metricOrder[i] > 0:
+          # Higher value is better
+          metricValues *= -1.0
 
-    #print "Ranks", rankTable
+        # Round the values, consider insignificant bits to be equal
+        metricValues = np.around(metricValues, decimals=self.decimals)
 
-    rankTable[np.isnan(rankTable)] = numSamples
+        rankTable[:,i] = self.get_rank_vector(metricValues)
 
-    numMissingPerRow = np.sum(np.isnan(rankTable), axis=1)
+      #print "Ranks", rankTable
 
-    maskedRankTable = rankTable.copy()
-    maskedRankTable[np.isnan(maskedRankTable)] = 0
+      maskedRankTable = rankTable.copy()
+      maskedRankTable[np.isnan(maskedRankTable)] = 0
+
+      rankTable[np.isnan(rankTable)] = numSamples
+
+      rankTableList.append(rankTable)
 
     for optIter in range(self.maxIterations):
       #print "Weights iter", optIter, " = ", np.around(self.weights, decimals=3)
 
-      numThresholded = \
-        np.sum(maskedRankTable <= self.threshold, axis=1)
-        #np.sum(maskedRankTable <= self.threshold, axis=1) - numMissingPerRow
-      numThresholded += 1e-20
+      weightUpdates = self.weights.copy()
 
-      #meanRank = np.sum(rankTable, axis=1) / numThresholded
-      meanRank = np.sum(maskedRankTable, axis=1) / numThresholded
+      for rankTable in rankTableList:
 
-      #print "Mean rank", meanRank
+        #numMissingPerRow = np.sum(np.isnan(rankTable), axis=1)
 
-      weightUpdates = np.ones(numMetrics, np.float64)
+        numThresholded = \
+          np.sum(rankTable <= self.threshold)
+          #np.sum(maskedRankTable <= self.threshold, axis=1)
+          #np.sum(maskedRankTable <= self.threshold, axis=1) - numMissingPerRow
 
-      for i in range(numMetrics):
-        rank_i = rankTable[:,i]
+        if numThresholded < 5:
+          continue
 
-        delta_i = (rank_i - meanRank)
-        delta_i[rank_i > self.threshold] = \
-          self.threshold + 1.0 - meanRank[rank_i > self.threshold]
+        # Minimizing w * (r - meanRank)**2
+        meanRank = np.sum(rankTable, axis=1) / numThresholded
+        #meanRank = np.sum(maskedRankTable, axis=1) / numThresholded
 
-        delta_i[np.isnan(delta_i)] = 0
+        # Minimizing (r - sum(w * r))**2
+        #meanRank = np.sum(maskedRankTable * self.weights, axis=1)
 
-        delta_i = delta_i ** 2.0
+        #print "Mean rank", meanRank
 
-        weightUpdates[i] = \
-          self.weights[i] * np.exp(-self.learningRate * np.sum(delta_i))
-          #self.weights[i] + self.learningRate * np.sum(delta_i) 
+        for i in range(numMetrics):
+          rank_i = rankTable[:,i]
+
+          delta_i = (rank_i - meanRank)
+          delta_i[rank_i > self.threshold] = \
+            self.threshold + 1.0 - meanRank[rank_i > self.threshold]
+
+          delta_i[np.isnan(delta_i)] = 0
+
+          delta_i = delta_i ** 2.0
+
+          weightUpdates[i] *= np.exp(-self.learningRate * np.sum(delta_i))
+          #weightUpdates[i] += self.learningRate * np.sum(delta_i) 
+
+          #weightUpdates[i] += self.learningRate * np.sum(delta_i * rank_i)
       
       prevWeights = self.weights
 
@@ -153,7 +171,6 @@ class UnsupervisedLearningRankAggregator:
       Ri[Ri > self.threshold] = self.threshold + 1
 
       Rweighted += self.weights[i] * Ri
-
 
     # Round average ranks since there are potential duplicates due to
     # missing data
@@ -192,7 +209,7 @@ if __name__ == "__main__":
 
   averageWeights = np.zeros(numMetrics, np.float64)
 
-  numPerturbations = 100
+  numPerturbations = 20
 
   for t in range(numPerturbations):
     sampleInd = np.random.permutation(numSamples)[:numSubSamples]
@@ -204,7 +221,7 @@ if __name__ == "__main__":
     metrics_t[:,-1] = np.round( np.random.rand(numSubSamples) * 100 )
 
     rankagg = UnsupervisedLearningRankAggregator()
-    rankagg.aggregate(metrics_t, metricOrder)
+    rankagg.aggregate([metrics_t], metricOrder)
 
     #averageWeights += rankagg.get_weights()
     w = rankagg.get_weights()
@@ -215,19 +232,21 @@ if __name__ == "__main__":
 
   averageWeights /= numPerturbations
 
-  #print "Average weights = ", averageWeights
-  print "Average weights = ", np.around(averageWeights, decimals=3)
+  #print "Estimated weights = ", averageWeights
+  print "Estimated weights = ", np.around(averageWeights, decimals=3)
 
   
   rankagg = UnsupervisedLearningRankAggregator()
   rankagg.set_weights(averageWeights)
 
+  """
   x = np.random.rand(8)
   x[2] = np.nan
   x[5] = np.nan
   print "x", x
   print "argsort(x)", np.argsort(x)
   print "ranking(x)", rankagg.get_rank_vector(x)
+  """
 
   print "True rank\n", np.float64(trueRank)
 
