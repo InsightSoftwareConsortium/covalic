@@ -72,6 +72,14 @@ if __name__ == "__main__":
     print "Usage:", sys.argv[0], " <binary path> <ground truth path> <submissions path>"
     sys.exit(-1)
 
+  np.set_printoptions(precision=3)
+  np.set_printoptions(formatter={'float': '{: 0.3f}'.format})
+  np.set_printoptions(suppress=True)
+
+  # Make multiple runs consistent
+  random.seed(279015032634680)
+  np.random.seed(78261310579)
+
   binaryPath = sys.argv[1]
   groundTruthPath = sys.argv[2]
   submissionsRootPath = sys.argv[3]
@@ -80,8 +88,6 @@ if __name__ == "__main__":
 
   # DEBUG
   debugAddRandom = False
-  if debugAddRandom:
-    random.seed(279075032630680)
 
   if not metricBinaryList:
     print "No image metric apps detected"
@@ -102,9 +108,9 @@ if __name__ == "__main__":
   perturbParameterDict["PerturbImageLabelsMorphology"] = \
     ["--iterations", "3", "--radius", "1"]
   perturbParameterDict["PerturbImageLabelsAffine"] = \
-    ["--maxScaleFactor", "1.05", "--maxRotationAngle", "5"]
+    ["--maxScaleFactor", "1.05", "--maxRotationAngle", "5", "--maxTranslation", "2" ]
   perturbParameterDict["PerturbImageLabelsBSpline"] = \
-    ["--normalVariance", "2"]
+    ["--gridNodes", "8", "--normalVariance", "2"]
 
   # Get ground truth files
   groundTruthFiles = \
@@ -113,7 +119,7 @@ if __name__ == "__main__":
 
   numGroundTruthSamples = len(groundTruthFiles)
 
-  numGroundTruthSubSamples = int(numGroundTruthSamples * 0.75)
+  numGroundTruthSubSamples = int(numGroundTruthSamples * 0.6)
 
   # Compute number of objects in ground truth set
   numObjects = 0
@@ -202,6 +208,15 @@ if __name__ == "__main__":
 
   for t in range(numPerturbations):
 
+    # Pick a type of perturbation
+    i_pert = np.random.randint(0, numPerturbers+1)
+    if i_pert < numPerturbers:
+      perturber = perturbBinaryList[i_pert]
+    else:
+      perturber = "PassThrough"
+
+    print "Applying", os.path.basename(perturber)
+
     # Evaluate random subset of ground truth cases, for robustness against
     # an outlier case
     gtIndices = np.random.permutation(numGroundTruthSamples)[:numGroundTruthSubSamples]
@@ -215,14 +230,32 @@ if __name__ == "__main__":
 
       metricTable = []
 
-      # Pick a type of perturbation
-      i_pert = np.random.randint(0, numPerturbers+1)
-      if i_pert < numPerturbers:
-        perturber = perturbBinaryList[i_pert]
-      else:
-        perturber = "PassThrough"
+      # Output perturbed image to temp dir
+      pert_gt = os.path.join(tempfile.gettempdir(),
+        "pert_" + os.path.basename(gt))
 
-      print "Applying", os.path.basename(perturber)
+      tempFileSet.add(pert_gt)
+
+      textout = os.path.join(tempfile.gettempdir(),
+        "pert_" + os.path.basename(gt) + ".out")
+
+      tempFileSet.add(textout)
+
+      command = [perturber, gt, pert_gt]
+
+      # Use custom parameters for each perturbation type
+      p_key = os.path.basename(perturber)
+      if p_key in perturbParameterDict:
+        command += perturbParameterDict[p_key]
+
+      #print "Running", command
+
+      if perturber == "PassThrough":
+        shutil.copyfile(gt, pert_gt)
+      else:
+        p = subprocess.Popen(args=command, stdout=subprocess.PIPE,
+          stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
 
       for submissionFiles in submissionFilesTable:
 
@@ -241,39 +274,12 @@ if __name__ == "__main__":
           metricTable.append( [np.nan] * len(metricNames) )
           continue
 
-        # Output perturbed image to temp dir
-        psubm = os.path.join(tempfile.gettempdir(),
-          "pert_" + os.path.basename(subm))
-
-        tempFileSet.add(psubm)
-
-        textout = os.path.join(tempfile.gettempdir(),
-          "pert_" + os.path.basename(subm) + ".out")
-
-        tempFileSet.add(textout)
-
-        command = [perturber, subm, psubm]
-
-        # Use custom parameters for each perturbation type
-        p_key = os.path.basename(perturber)
-        if p_key in perturbParameterDict:
-          command += perturbParameterDict[p_key]
-
-        #print "Running", command
-
-        if perturber == "PassThrough":
-          shutil.copyfile(subm, psubm)
-        else:
-          p = subprocess.Popen(args=command, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-          stdout, stderr = p.communicate()
-
         # Evaluate each metric on gt and perturbed submission
         metricValues = []
         for j in range(numMetrics):
 
           # Run validation app and obtain list of metrics from stdout
-          command = [metricBinaryList[j], gt, psubm, textout]
+          command = [metricBinaryList[j], pert_gt, subm, textout]
 
           #print "Running", command
 
@@ -294,7 +300,7 @@ if __name__ == "__main__":
       # distribution estimate p(rank | submission)? uniform in [min, max]?
 
       print metricTable.shape
-      print np.around(metricTable, decimals=5)
+      print metricTable
 
       metricTableList.append(metricTable)
 
@@ -307,12 +313,12 @@ if __name__ == "__main__":
     w = rankagg.get_weights()
 
     #if t % 20 == 0:
-    #  print "Weights", np.around(w, decimals=3)
-    print "Weights\n", np.around(w, decimals=3)
+    #  print "Weights", w
+    print "Weights\n", w
 
     averageWeights += w
 
-    print "Average weights\n", np.around(averageWeights/(t+1), decimals=3)
+    print "Average weights\n", averageWeights/(t+1)
 
   averageWeights /= numPerturbations
 
@@ -323,10 +329,10 @@ if __name__ == "__main__":
   print "Sum weights = ", np.sum(averageWeights)
 
   print "Metric names:\n", metricNames
-  print "Average weights =\n", np.around(averageWeights, decimals=3)
+  print "Average weights =\n", averageWeights
 
   for i in range(len(metricNames)):
-    print metricNames[i], "->", np.around(averageWeights[i], decimals=3)
+    print metricNames[i], "->", averageWeights[i]
 
   imin = np.argmin(averageWeights)
   print "Smallest weight is", averageWeights[imin], "for", metricNames[imin]

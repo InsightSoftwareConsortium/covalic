@@ -17,7 +17,7 @@ class UnsupervisedLearningRankAggregator:
 
   def __init__(self):
     # Metric precision, number of decimals to be considered for ranking
-    self.decimals = 4
+    self.decimals = 5
 
     # Threshold for ranks
     self.threshold = 100
