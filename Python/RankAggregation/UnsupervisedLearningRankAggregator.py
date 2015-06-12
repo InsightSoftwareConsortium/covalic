@@ -47,13 +47,15 @@ class UnsupervisedLearningRankAggregator:
   def get_rank_vector(self, x):
     """Get ranking with explicit handling of missing values, tagged as nan."""
 
+    n = len(x)
+
     if np.all(np.isnan(x)):
-      return np.ones(len(x)) * len(x)
+      return np.ones(len(x)) * n
 
     ranks = mstats.rankdata(np.ma.masked_invalid(x))
 
     # Make all missing data have the same rank, not ordered by appearance
-    #ranks[ranks == 0] = len(x) + 1
+    #ranks[ranks == 0] = n + 1
     ranks[ranks == 0] = np.nan
 
     ranks -= 1
@@ -134,7 +136,8 @@ class UnsupervisedLearningRankAggregator:
           delta_i = delta_i ** 2.0
 
           weightUpdates[i] *= np.exp(-self.learningRate * np.sum(delta_i))
-          #weightUpdates[i] += self.learningRate * np.sum(delta_i) 
+
+          #weightUpdates[i] -= self.learningRate * np.sum(delta_i) 
 
           #weightUpdates[i] += self.learningRate * np.sum(delta_i * rank_i)
       

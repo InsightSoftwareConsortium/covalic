@@ -16,11 +16,14 @@ from UnsupervisedLearningRankAggregator import UnsupervisedLearningRankAggregato
 import SimpleITK as sitk
 
 import numpy as np
+import scipy.stats
 
 import os, sys
 import glob
 
 import random
+
+import multiprocessing
 
 import shutil
 import subprocess
@@ -68,21 +71,45 @@ def getSubjectKey(s):
 
 if __name__ == "__main__":
 
-  if len(sys.argv) != 4:
-    print "Usage:", sys.argv[0], " <binary path> <ground truth path> <submissions path>"
-    sys.exit(-1)
+  import argparse
+
+  parser = argparse.ArgumentParser(
+    description="Compute rank weights in an image segmentation challenge")
+  parser.add_argument("binaryPath", type=str,
+    help="path containing perturbation and metric binaries")
+  parser.add_argument("groundTruthPath", type=str,
+    help="path containing ground truth files")
+  parser.add_argument("submissionsRootPath", type=str,
+    help="path containing folders for different submissions")
+  parser.add_argument("-p", "--perturbations", type=int, default=100,
+    help="number of perturbations per ground truth")
+  parser.add_argument("-t", "--threads", type=int, default=8,
+    help="number of threads (processes) for metric evaluations")
+
+  args = parser.parse_args()
+
+  binaryPath = args.binaryPath
+  groundTruthPath = args.groundTruthPath
+  submissionsRootPath = args.submissionsRootPath
+
+  numPerturbations = args.perturbations
+  numProcesses = args.threads
+
+  numCPU = multiprocessing.cpu_count()
+  if numProcesses > numCPU or numProcesses < 1:
+    print "Setting number of processes from", numProcesses, "to", numCPU
+    numProcesses = numCPU
+
+  print "Applying", numPerturbations, "perturbations per ground truth"
+  print "Using", numProcesses, "processes"
 
   np.set_printoptions(precision=3)
   np.set_printoptions(formatter={'float': '{: 0.3f}'.format})
   np.set_printoptions(suppress=True)
 
   # Make multiple runs consistent
-  random.seed(279015032634680)
+  random.seed(2790150234680)
   np.random.seed(78261310579)
-
-  binaryPath = sys.argv[1]
-  groundTruthPath = sys.argv[2]
-  submissionsRootPath = sys.argv[3]
 
   metricBinaryList = sorted(glob.glob(os.path.join(binaryPath, "ValidateImage*")))
 
@@ -106,11 +133,11 @@ if __name__ == "__main__":
   # Parameters for different perturbation binaries
   perturbParameterDict = dict()
   perturbParameterDict["PerturbImageLabelsMorphology"] = \
-    ["--iterations", "3", "--radius", "1"]
+    ["--iterations", "2", "--radius", "1"]
   perturbParameterDict["PerturbImageLabelsAffine"] = \
-    ["--maxScaleFactor", "1.05", "--maxRotationAngle", "5", "--maxTranslation", "2" ]
+    ["--maxScaleFactor", "1.02", "--maxRotationAngle", "4", "--maxTranslation", "2" ]
   perturbParameterDict["PerturbImageLabelsBSpline"] = \
-    ["--gridNodes", "8", "--normalVariance", "2"]
+    ["--gridNodes", "8", "--normalVariance", "1.5"]
 
   # Get ground truth files
   groundTruthFiles = \
@@ -119,7 +146,7 @@ if __name__ == "__main__":
 
   numGroundTruthSamples = len(groundTruthFiles)
 
-  numGroundTruthSubSamples = int(numGroundTruthSamples * 0.6)
+  numGroundTruthSubSamples = int(numGroundTruthSamples * 0.8)
 
   # Compute number of objects in ground truth set
   numObjects = 0
@@ -202,8 +229,6 @@ if __name__ == "__main__":
 
   averageWeights = np.zeros(len(metricNames))
 
-  numPerturbations = 100
-
   tempFileSet = set() # Hash of temporary files to delete later
 
   for t in range(numPerturbations):
@@ -221,11 +246,7 @@ if __name__ == "__main__":
     # an outlier case
     gtIndices = np.random.permutation(numGroundTruthSamples)[:numGroundTruthSubSamples]
 
-    metricTableList = []
-
-    for i_gt in gtIndices:
-      gt = groundTruthFiles[i_gt]
-
+    def getMetricTable(gt):
       print "Examining ground truth:", os.path.basename(gt)
 
       metricTable = []
@@ -299,12 +320,23 @@ if __name__ == "__main__":
       # TODO: fill missing/nan values using transduction or draw from a
       # distribution estimate p(rank | submission)? uniform in [min, max]?
 
-      print metricTable.shape
+      return metricTable
+
+    pool = multiprocessing.Pool(processes=numProcesses)
+
+    metricTableList = pool.map(getMetricTable,
+      [groundTruthFiles[i_gt] for i_gt in gtIndices])
+
+    pool.close()
+    pool.join()
+
+    print "Number of metric tables", len(metricTableList), \
+      "with shape", metricTable[0].shape
+
+    for metricTable in metricTableList:
       print metricTable
 
-      metricTableList.append(metricTable)
-
-    print "Number of metric tables", len(metricTableList)
+    print "Aggregating rankings from metric tables"
 
     rankagg = UnsupervisedLearningRankAggregator()
     rankagg.aggregate(metricTableList, metricOrder)
@@ -346,18 +378,75 @@ if __name__ == "__main__":
 
   np.save("metric_weights.npy", averageWeights)
 
-  # TODO
-  # Apply computed weights to get rankings, averaged over different cases
-  # finalRank = zeros(numSubmissions)
-  # for gt in groundTruthFiles:
-  #   rankagg = UnsupervisedLearningRankAggregator()
-  #   rankagg.set_weights(averageWeights)
-  #   rank_g = rankagg.get_aggregated_rank(metricTable, metricOrder)
-  # finalRank /= numSubmissions
-  # finalRank = np.argsort(finalRank)
-  #print "Final aggregated rank\n", finalRank
-  #ibest = np.argmin(finalRank)
-  #print "Best submission is in", os.path.dirname(submissionFileTable[ibest][0])
+  # Apply computed weights to get rankings, averaged over different ground
+  # truth cases
+  finalAggregatedRank = np.zeros(numSubmissions)
+
+  finalRankTable = []
+
+  for gt in groundTruthFiles:
+    metricTable = []
+    for submissionFiles in submissionFilesTable:
+
+      # Search for match to this ground truth in submissions list
+      subm = None
+      for f in submissionFiles:
+        q = getSubjectKey(f)
+
+        if os.path.basename(gt).find(q) >= 0:
+          subm = f
+
+      # Handle missing submissions
+      if subm is None:
+        print "WARNING: Cannot find any submissions for", gt, \
+          "in path", os.path.dirname(submissionFiles[0])
+        metricTable.append( [np.nan] * len(metricNames) )
+        continue
+
+      # Evaluate each metric on gt and perturbed submission
+      metricValues = []
+      for j in range(numMetrics):
+
+        # Run validation app and obtain list of metrics from stdout
+        command = [metricBinaryList[j], pert_gt, subm, textout]
+
+        #print "Running", command
+
+        p = subprocess.Popen(args=command, stdout=subprocess.PIPE,
+          stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+
+        metricValues += getMetricValues(textout, numObjects)
+
+        if debugAddRandom:
+          metricValues += [random.uniform(0,100)]
+
+      metricTable.append(metricValues)
+
+    metricTable = np.array(metricTable)
+
+    rankagg = UnsupervisedLearningRankAggregator()
+    rankagg.set_weights(averageWeights)
+
+    rank_gt = rankagg.get_aggregated_rank(metricTable, metricOrder)
+
+    finalRankTable.append(rank_gt)
+
+    finalAggregatedRank += rank_gt
+
+  finalAggregatedRank /= numGroundTruthSamples
+  finalAggregatedRank = scipy.stats.rankdata(finalAggregatedRank) - 1
+
+  print "Final aggregated rank (over all ground truth)\n", finalAggregatedRank
+
+  indSorted = np.argsort(finalAggregatedRank)
+
+  print "Rankings:"
+  for i in numSubmissions:
+    print i+1, "->", os.path.basename(os.path.dirname(submissionFilesTable[indSorted[i]][0]))
+
+  finalRankTable = np.array(finalRankTable)
+  print "Final rank table (per ground truth)\n", finalRankTable
 
   # Remove perturbed images and metric evals in temporary directory
   print "Clean up"
