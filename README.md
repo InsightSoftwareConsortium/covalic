@@ -15,5 +15,5 @@ characterize how a challenge can have different results under specific
 perturbations.
 
 COVALIC is currently in use at the following sites:
-http://challenge.kitware.com
-https://www.virtualskeleton.ch
+* http://challenge.kitware.com
+* https://www.virtualskeleton.ch
