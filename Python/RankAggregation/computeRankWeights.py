@@ -74,7 +74,7 @@ if __name__ == "__main__":
   import argparse
 
   parser = argparse.ArgumentParser(
-    description="Compute rank weights in an image segmentation challenge")
+    description="Compute metric weights for ranking submissions in an image segmentation challenge")
   parser.add_argument("binaryPath", type=str,
     help="path containing perturbation and metric binaries")
   parser.add_argument("groundTruthPath", type=str,
@@ -247,18 +247,21 @@ if __name__ == "__main__":
     gtIndices = np.random.permutation(numGroundTruthSamples)[:numGroundTruthSubSamples]
 
     def getMetricTable(gt):
+
       print "Examining ground truth:", os.path.basename(gt)
+
+      pname = multiprocessing.current_process().name
 
       metricTable = []
 
       # Output perturbed image to temp dir
       pert_gt = os.path.join(tempfile.gettempdir(),
-        "pert_" + os.path.basename(gt))
+        pname + "_pert_" + os.path.basename(gt))
 
       tempFileSet.add(pert_gt)
 
       textout = os.path.join(tempfile.gettempdir(),
-        "pert_" + os.path.basename(gt) + ".out")
+        pname + "_pert_" + os.path.basename(gt) + ".out")
 
       tempFileSet.add(textout)
 
@@ -331,7 +334,7 @@ if __name__ == "__main__":
     pool.join()
 
     print "Number of metric tables", len(metricTableList), \
-      "with shape", metricTable[0].shape
+      "with shape", metricTableList[0].shape
 
     for metricTable in metricTableList:
       print metricTable
@@ -380,11 +383,13 @@ if __name__ == "__main__":
 
   # Apply computed weights to get rankings, averaged over different ground
   # truth cases
-  finalAggregatedRank = np.zeros(numSubmissions)
 
-  finalRankTable = []
+  def getFinalRank(gt):
 
-  for gt in groundTruthFiles:
+    print "Examining ground truth:", os.path.basename(gt)
+
+    pname = multiprocessing.current_process().name
+
     metricTable = []
     for submissionFiles in submissionFilesTable:
 
@@ -403,12 +408,17 @@ if __name__ == "__main__":
         metricTable.append( [np.nan] * len(metricNames) )
         continue
 
+      textout = os.path.join(tempfile.gettempdir(),
+        pname + "_" + os.path.basename(gt) + ".out")
+
+      tempFileSet.add(textout)
+
       # Evaluate each metric on gt and perturbed submission
       metricValues = []
       for j in range(numMetrics):
 
         # Run validation app and obtain list of metrics from stdout
-        command = [metricBinaryList[j], pert_gt, subm, textout]
+        command = [metricBinaryList[j], gt, subm, textout]
 
         #print "Running", command
 
@@ -428,10 +438,17 @@ if __name__ == "__main__":
     rankagg = UnsupervisedLearningRankAggregator()
     rankagg.set_weights(averageWeights)
 
-    rank_gt = rankagg.get_aggregated_rank(metricTable, metricOrder)
+    return rankagg.get_aggregated_rank(metricTable, metricOrder)
 
-    finalRankTable.append(rank_gt)
+  pool = multiprocessing.Pool(processes=numProcesses)
 
+  finalRankTable = pool.map(getFinalRank, groundTruthFiles)
+
+  pool.close()
+  pool.join()
+
+  finalAggregatedRank = np.zeros(numSubmissions)
+  for rank_gt in finalRankTable:
     finalAggregatedRank += rank_gt
 
   finalAggregatedRank /= numGroundTruthSamples
@@ -442,8 +459,10 @@ if __name__ == "__main__":
   indSorted = np.argsort(finalAggregatedRank)
 
   print "Rankings:"
-  for i in numSubmissions:
-    print i+1, "->", os.path.basename(os.path.dirname(submissionFilesTable[indSorted[i]][0]))
+  for i in range(numSubmissions):
+    i_s = indSorted[i]
+    p = os.path.dirname(submissionFilesTable[i_s][0])
+    print i+1, "->", os.path.basename(p)
 
   finalRankTable = np.array(finalRankTable)
   print "Final rank table (per ground truth)\n", finalRankTable
