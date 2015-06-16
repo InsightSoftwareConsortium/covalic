@@ -21,7 +21,11 @@ RUN apt-get update && apt-get install -y \
     mesa-common-dev \
     python \
     python-pip \
-    libpython-dev
+    libpython-dev \
+    liblapack-dev \
+    gfortran
+
+RUN pip install numpy scipy
 
 # Install SimpleITK
 RUN easy_install SimpleITK
