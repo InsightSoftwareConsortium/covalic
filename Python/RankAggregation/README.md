@@ -12,11 +12,13 @@ containing the metric weights, given ground truth from multiple raters and
 submissions from different users. For example, given ground truth stored
 in /data/ground_truth_root and submissions in /data/submissions_root, the
 script can be invoked as follows:
+```
     python computeRankWeights.py /home/user/covalic-SuperBuild/Covalic-Build/lib/covalic/Plugins /data/ground_truth_root /data/submissions_root weights.json
-o
+```
 
 Right now, the script assumes that the file structure exist in the following
 pattern:
+```
     /data/ground_truth_root
       +- Rater1/
          +- case001_rater1.mha
@@ -33,6 +35,7 @@ pattern:
          +- case002_submitter02.mha
       +- Submission3/
          +- case002_submitter03.mha
+```
 Missing submissions are allowed, however this will penalize the ranking of
 the submitted results.
 
