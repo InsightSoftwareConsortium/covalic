@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 #
 # Rank aggregation of image segmentation fidelity to ground truth using
-# unsupervised learning combined with ensemble analysis of perturbed 
+# unsupervised learning combined with ensemble analysis of perturbed
 # segmentations/registrations
-# 
+#
 # Based on
 # Klementiev, A., Roth, D., & Small, K. (2007). An unsupervised learning
 # algorithm for rank aggregation. In Machine Learning: ECML 2007 (pp. 616-623).
@@ -47,7 +47,7 @@ def getMetricValues(textFilename, numLabels):
     item  = inner.split(",")[0]
 
     value = float(value)
-    # For consistency, tag inf as nan 
+    # For consistency, tag inf as nan
     if np.isinf(value):
       value = np.nan
 
@@ -116,8 +116,8 @@ if __name__ == "__main__":
   np.set_printoptions(suppress=True)
 
   # Make multiple runs consistent
-  random.seed(2790150234680)
-  np.random.seed(78261310579)
+  random.seed(2015023468)
+  np.random.seed(261310579)
 
   startTime = time.clock()
 
