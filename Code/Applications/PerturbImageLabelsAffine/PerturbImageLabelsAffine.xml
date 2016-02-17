@@ -13,17 +13,66 @@
   <parameters>
     <label>Perturbation</label>
 
+    <boolean>
+    <name>randomMode</name>
+    <description>Randomize scale between [1/scale, scale], translation between [-trans, trans], and rotation between [-rot, rot], otherwise values are exact perturbations.</description>
+    <longflag>randomize</longflag>
+    <default>false</default>
+    </boolean>
+
     <float>
     <name>maxRotationAngle</name>
     <description>Maximum angle of rotation</description>
     <longflag>maxRotationAngle</longflag>
-    <default>15.0</default>
+    <default>0.0</default>
+    </float>
+
+    <float>
+    <name>rx</name>
+    <description>Maximum angle of rotation around x dimension</description>
+    <longflag>rx</longflag>
+    <default>5.0</default>
+    </float>
+
+    <float>
+    <name>ry</name>
+    <description>Maximum angle of rotation around y dimension</description>
+    <longflag>ry</longflag>
+    <default>5.0</default>
+    </float>
+
+    <float>
+    <name>rz</name>
+    <description>Maximum angle of rotation around z dimension</description>
+    <longflag>rz</longflag>
+    <default>5.0</default>
     </float>
 
     <float>
     <name>maxScaleFactor</name>
     <description>Maximum scaling factor</description>
     <longflag>maxScaleFactor</longflag>
+    <default>1.0</default>
+    </float>
+
+    <float>
+    <name>sx</name>
+    <description>Maximum scaling factor in x dimension</description>
+    <longflag>sx</longflag>
+    <default>1.1</default>
+    </float>
+
+    <float>
+    <name>sy</name>
+    <description>Maximum scaling factor in y dimension</description>
+    <longflag>sy</longflag>
+    <default>1.1</default>
+    </float>
+
+    <float>
+    <name>sz</name>
+    <description>Maximum scaling factor in z dimension</description>
+    <longflag>sz</longflag>
     <default>1.1</default>
     </float>
 
@@ -31,6 +80,27 @@
     <name>maxTranslation</name>
     <description>Maximum amount of translation</description>
     <longflag>maxTranslation</longflag>
+    <default>0.0</default>
+    </float>
+
+    <float>
+    <name>tx</name>
+    <description>Maximum amount of translation in x dimension</description>
+    <longflag>tx</longflag>
+    <default>5.0</default>
+    </float>
+
+    <float>
+    <name>ty</name>
+    <description>Maximum amount of translation in y dimension</description>
+    <longflag>ty</longflag>
+    <default>5.0</default>
+    </float>
+
+    <float>
+    <name>tz</name>
+    <description>Maximum amount of translation in z dimension</description>
+    <longflag>tz</longflag>
     <default>5.0</default>
     </float>
 
