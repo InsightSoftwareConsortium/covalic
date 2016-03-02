@@ -42,6 +42,12 @@ validateImageHausdorffDist(const char* fn1, const char* fn2, const char* outFile
     testImg = reader->GetOutput();
   }
 
+  // Set test image to have the same image coordinate information, in case of
+  // bad submissions
+  testImg->SetOrigin(truthImg->GetOrigin());
+  testImg->SetSpacing(truthImg->GetSpacing());
+  testImg->SetDirection(truthImg->GetDirection());
+
   std::ofstream outputfile;
   outputfile.open(outFile, std::ios::out);
 

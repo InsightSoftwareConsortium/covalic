@@ -29,7 +29,8 @@ mark_as_advanced( GIT_PROTOCOL )
 
 set( proj VTK )
 ExternalProject_Add( ${proj}
-  GIT_REPOSITORY "${GIT_PROTOCOL}://vtk.org/VTK.git"
+  #GIT_REPOSITORY "${GIT_PROTOCOL}://vtk.org/VTK.git"
+  GIT_REPOSITORY "https://gitlab.kitware.com/vtk/vtk.git"
   GIT_TAG "v6.1.0"
   SOURCE_DIR "${CMAKE_BINARY_DIR}/VTK"
   BINARY_DIR VTK-Build
@@ -44,6 +45,7 @@ ExternalProject_Add( ${proj}
   -DBUILD_SHARED_LIBS:BOOL=${shared}
   -DBUILD_EXAMPLES:BOOL=OFF
   -DBUILD_TESTING:BOOL=OFF
+  -DVTK_REQUIRED_OBJCXX_FLAGS:STRING=""
   INSTALL_COMMAND ""
 )
 
