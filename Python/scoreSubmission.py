@@ -66,8 +66,8 @@ def runScoring(truth, test):
     """
     command = (
         '/covalic/_build/Covalic-Build/Code/Testing/validateLabelImages',
-        '/data/groundtruth/' + os.path.basename(truth),
-        '/data/submission/' + os.path.basename(test)
+        truth,
+        test
     )
 
     p = subprocess.Popen(args=command, stdout=subprocess.PIPE,
