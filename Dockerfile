@@ -29,6 +29,6 @@ RUN pip install numpy scipy
 
 # Perform superbuild of covalic scoring metrics
 RUN cmake -DBUILD_TESTING:BOOL=OFF /covalic
-RUN make -j4
+RUN make -j2
 
 ENTRYPOINT ["python", "/covalic/Python/scoreSubmission.py"]
