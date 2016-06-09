@@ -27,11 +27,8 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip install numpy scipy
 
-# Install SimpleITK
-RUN pip install SimpleITK
-
 # Perform superbuild of covalic scoring metrics
-RUN cmake /covalic
+RUN cmake -DBUILD_TESTING:BOOL=OFF /covalic
 RUN make -j4
 
 ENTRYPOINT ["python", "/covalic/Python/scoreSubmission.py"]
