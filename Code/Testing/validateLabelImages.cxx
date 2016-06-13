@@ -46,6 +46,17 @@ validateLabelImages(const char* fixedfn, const char* movingfn)
   mreader->Update();
   ImageType::Pointer movingImage = mreader->GetOutput();
 
+  ImageType::SizeType fsize = fixedImage->GetLargestPossibleRegion().GetSize();
+  ImageType::SizeType msize = movingImage->GetLargestPossibleRegion().GetSize();
+
+  if (fsize != msize) {
+    std::cerr << "Error: Image sizes do not match. Make sure that your image " <<
+      "orientation is correct." << std::endl;
+    std::cerr << "Fixed size: " << fsize << std::endl;
+    std::cerr << "Moving size: " << msize << std::endl;
+    return 1;
+  }
+
   // Metrics for binary data
   typedef DiceOverlapImageToImageMetric<ImageType, ImageType>
     DiceMetricType;
