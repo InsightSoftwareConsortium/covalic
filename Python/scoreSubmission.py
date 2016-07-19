@@ -15,33 +15,6 @@ import json
 import os
 import subprocess
 import sys
-import zipfile
-
-
-def extractZip(path, dest, flatten=True):
-    """
-    Extract a zip file, optionally flattening it into a single directory.
-    """
-    try:
-        os.makedirs(dest)
-    except OSError:
-        if not os.path.exists(dest):
-            raise
-
-    with zipfile.ZipFile(path) as zf:
-        if flatten:
-            for name in zf.namelist():
-                out = os.path.join(dest, os.path.basename(name))
-                with open(out, 'wb') as ofh:
-                    with zf.open(name) as ifh:
-                        while True:
-                            buf = ifh.read(65536)
-                            if buf:
-                                ofh.write(buf)
-                            else:
-                                break
-        else:
-            zf.extractall(output)
 
 
 def matchInputFile(gt, subDir):
@@ -95,20 +68,11 @@ def runScoring(truth, test):
 
 
 def scoreAll(args):
-    localDirs = {}
-
-    # Unzip the input files into appropriate folders
-    dest = os.path.dirname(args.groundtruth)
-    gtDir = os.path.join(dest, 'groundtruth')
-    subDir = os.path.join(dest, 'submission')
-    extractZip(args.groundtruth, gtDir)
-    extractZip(args.submission, subDir)
-
     # Iterate over each file and call scoring executable on the pair
     scores = []
-    for gt in os.listdir(gtDir):
-        sub = matchInputFile(gt, subDir)
-        truth = os.path.join(gtDir, gt)
+    for gt in os.listdir(args.groundtruth):
+        sub = matchInputFile(gt, args.submission)
+        truth = os.path.join(args.groundtruth, gt)
 
         scores.append({
             'dataset': gt,
