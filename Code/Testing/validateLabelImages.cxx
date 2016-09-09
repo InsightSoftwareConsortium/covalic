@@ -20,20 +20,45 @@
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
+#include "itkImageRegionIterator.h"
 
 #include "itkOutputWindow.h"
 #include "itkTextOutput.h"
 
 #include <exception>
 #include <iostream>
+#include <set>
 #include <string>
 
+typedef unsigned short PixelType;
+typedef itk::Image<PixelType, 3> ImageType;
+
+/**
+ * Validate that the given image contains only two labels. This is implemented by
+ * iterating over the pixels in the image and ensuring that the number of distinct
+ * labels is no more than two.
+ */
+bool validateLabelCount(const ImageType::Pointer& image)
+{
+  itk::ImageRegionConstIterator<ImageType> itr(image, image->GetRequestedRegion());
+  std::set<PixelType> distinctValues;
+
+  itr.GoToBegin();
+  while (!itr.IsAtEnd())
+  {
+    distinctValues.insert(itr.Get());
+
+    if (distinctValues.size() > 2) {
+        return false;
+    }
+    ++itr;
+  }
+  return true;
+}
 
 int
 validateLabelImages(const char* fixedfn, const char* movingfn)
 {
-  typedef itk::Image<unsigned short, 3> ImageType;
-
   typedef itk::ImageFileReader<ImageType> ReaderType;
 
   ReaderType::Pointer freader = ReaderType::New();
@@ -54,6 +79,15 @@ validateLabelImages(const char* fixedfn, const char* movingfn)
       "orientation is correct." << std::endl;
     std::cerr << "Fixed size: " << fsize << std::endl;
     std::cerr << "Moving size: " << msize << std::endl;
+    return 1;
+  }
+
+  if (!validateLabelCount(fixedImage)) {
+    std::cerr << "Error: " << fixedfn << " has more than two labels." << std::endl;
+    return 1;
+  }
+  if (!validateLabelCount(movingImage)) {
+    std::cerr << "Error: " << movingfn << " has more than two labels." << std::endl;
     return 1;
   }
 
