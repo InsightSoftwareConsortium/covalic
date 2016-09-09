@@ -36,7 +36,7 @@ typedef itk::Image<PixelType, 3> ImageType;
 /**
  * Validate that the given image contains only two labels. This is implemented by
  * iterating over the pixels in the image and ensuring that the number of distinct
- * labels is no more than two.
+ * values is no more than three.
  */
 bool validateLabelCount(const ImageType::Pointer& image)
 {
@@ -48,7 +48,7 @@ bool validateLabelCount(const ImageType::Pointer& image)
   {
     distinctValues.insert(itr.Get());
 
-    if (distinctValues.size() > 2) {
+    if (distinctValues.size() > 3) {
         return false;
     }
     ++itr;
