@@ -86,9 +86,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Submission scoring helper script')
     parser.add_argument('-g', '--groundtruth', required=True,
-                        help='path to the ground truth zip file')
+                        help='path to the ground truth folder')
     parser.add_argument('-s', '--submission', required=True,
-                        help='path to the submission zip file')
+                        help='path to the submission folder')
     args = parser.parse_args()
 
     scoreAll(args)
